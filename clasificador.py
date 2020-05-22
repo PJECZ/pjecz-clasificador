@@ -1,7 +1,6 @@
 import click
 import configparser
 import email
-import email.message
 import imaplib
 import os
 import smtplib
@@ -46,6 +45,34 @@ def cli(config, rama):
     except KeyError:
         click.echo('ERROR: Falta configuración en settings.ini')
         sys.exit(1)
+    # Validar
+    if not config.servidor_imap:
+        click.echo('ERROR: Falta el servidor_imap')
+        sys.exit(1)
+    if not config.email_direccion:
+        click.echo('ERROR: Falta la email_direccion')
+        sys.exit(1)
+    if not config.email_contrasena:
+        click.echo('ERROR: Falta la email_contrasena')
+        sys.exit(1)
+    if not config.deposito_ruta:
+        click.echo('ERROR: Falta el deposito_ruta')
+        sys.exit(1)
+    if not os.path.exists(config.deposito_ruta) or not os.path.isdir(config.deposito_ruta):
+        click.echo(f'ERROR: No existe o no es directorio {config.deposito_ruta}')
+        sys.exit(1)
+
+
+def cargar_inbox(config):
+    """ Cargar carpeta inbox del correo electrónico """
+    mail = imaplib.IMAP4_SSL(config.servidor_imap)
+    mail.login(config.email_direccion, config.email_contrasena)
+    mail.list()
+    mail.select('inbox') # Accesar la carpeta inbox
+    inbox_tipo, inbox_datos = mail.search(None, 'UNSEEN') # Obtener mensajes sin leer
+    inbox_ids = inbox_datos[0]
+    id_list = inbox_ids.split()
+    return(mail, inbox_datos)
 
 
 @cli.command()
@@ -60,29 +87,17 @@ def informar(config):
 def leer(config):
     """ Leer """
     click.echo('Voy a leer...')
-    # Obtener mensajes sin leer
-    mail = imaplib.IMAP4_SSL(config.servidor_imap)
-    mail.login(config.email_direccion, config.email_contrasena)
-    mail.list()
-    # Acceso a la carpeta inbox con permisos de lectura
-    mail.select('inbox')
-    type, data = mail.search(None, 'UNSEEN') # busca los correos que no han sido leido
-    mail_ids = data[0]
-    id_list = mail_ids.split()
-    # Recorre los correos por id
-    for num in data[0].split():
-        latest_email_uid = id_list[-1]
-        typ, data = mail.fetch(num, '(RFC822)' )
-        raw_email = data[0][1]
-        latest_email_uid = id_list[-1]
-        # Converts byte literal to string removing b''
-        raw_email_string = raw_email.decode('utf-8')
-        email_message = email.message_from_string(raw_email_string)
+    mail, inbox_datos = cargar_inbox(config)
+    for item in inbox_datos[0].split(): # Recorre los mensajes sin leer
+        mensaje_tipo, mensaje_datos = mail.fetch(item, '(RFC822)' )
+        mensaje_crudo = mensaje_datos[0][1]
+        mensaje_texto = mensaje_crudo.decode('utf-8')
+        mensaje = email.message_from_string(mensaje_texto)
         # Mostrar
-        click.echo(f'To:      {email_message["To"]}')
-        click.echo(f'From:    {email_message["From"]}')
-        click.echo(f'Subject: {email_message["Subject"]}')
-        click.echo(f'Date:    {email_message["Date"]}')
+        click.echo(f'To:      {mensaje["To"]}')
+        click.echo(f'From:    {mensaje["From"]}')
+        click.echo(f'Subject: {mensaje["Subject"]}')
+        click.echo(f'Date:    {mensaje["Date"]}')
         click.echo()
 
 
@@ -90,7 +105,32 @@ def leer(config):
 @pass_config
 def leer_clasificar(config):
     """ Leer y clasificar """
-    click.echo('Voy a leer y clasificar... nada aun.')
+    click.echo('Voy a leer y clasificar...')
+    mail, inbox_datos = cargar_inbox(config)
+    for item in inbox_datos[0].split(): # Recorre los mensajes sin leer
+        mensaje_tipo, mensaje_datos = mail.fetch(item, '(RFC822)' )
+        mensaje_crudo = mensaje_datos[0][1]
+        mensaje_texto = mensaje_crudo.decode('utf-8')
+        mensaje = email.message_from_string(mensaje_texto)
+        # PENDIENTE Determinar el subdirectorio en el depósito
+        # FALTA la ruta relativa según el remitente
+        destino_ruta = config.deposito_ruta
+        # PENDIENTE SI NO SE TIENE EL remitente se pasa al siguiente
+        # Validar que exista el subdirectorio
+        if not os.path.exists(destino_ruta) or not os.path.isdir(destino_ruta):
+            click.echo(f'ERROR: No existe o no es directorio {destino_ruta}, se omite mensaje de {mensaje["From"]}')
+            next
+        # Bucle para las partes en el mensaje
+        for parte in mensaje.walk():
+            nombre = parte.get_filename()
+            # Si es un archivo adjunto
+            if bool(nombre):
+                # PENDIENTE Validar que sea un archivo PDF
+                # PENDIENTE Si no es PDF se pasa al siguiente
+                # Guardar archivo adjunto
+                archivo_ruta = os.path.join(destino_ruta, nombre)
+                with open(archivo_ruta, 'wb') as puntero:
+                    puntero.write(parte.get_payload(decode=True))
 
 
 @cli.command()
