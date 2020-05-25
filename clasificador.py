@@ -7,6 +7,7 @@ import os
 import smtplib
 import time
 import sys
+from datetime import date
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
@@ -17,6 +18,7 @@ class Config(object):
     def __init__(self):
         self.rama = ''
         self.servidor_imap = ''
+        self.servidor_smtp = ''
         self.remitentes_csv_ruta = ''
         self.email_direccion = ''
         self.email_contrasena = ''
@@ -41,6 +43,7 @@ def cli(config, rama):
     settings.read('settings.ini')
     try:
         config.servidor_imap = settings['Global']['servidor_imap']
+        config.servidor_smtp = settings['Global']['servidor_smtp']
         config.remitentes_csv_ruta = settings['Global']['remitentes_csv_ruta']
         config.email_direccion = settings[config.rama]['email_direccion']
         config.email_contrasena = settings[config.rama]['email_contrasena']
@@ -51,6 +54,9 @@ def cli(config, rama):
     # Validar
     if not config.servidor_imap:
         click.echo('ERROR: En settings.ini falta el servidor_imap')
+        sys.exit(1)
+    if not config.servidor_smtp:
+        click.echo('ERROR: En settings.ini falta el servidor_smtp')
         sys.exit(1)
     if not config.remitentes_csv_ruta or not os.path.exists(config.remitentes_csv_ruta) or not os.path.isfile(config.remitentes_csv_ruta):
         click.echo('ERROR: En settings.ini no existe remitentes_csv_ruta')
@@ -81,6 +87,7 @@ def cargar_inbox(config):
     return(mail, inbox_datos)
 
 def cargar_remitentes(config):
+    """ Cargar archivos CSV con datos de los remitentes, entrega un diccionario para consultar con la dirección """
     if config.rama == 'Acuerdos':
         destino_columna = 'Mover Listas de Acuerdos a'
     elif config.rama == 'Sentencias':
@@ -100,8 +107,27 @@ def cargar_remitentes(config):
                     }
     return(remitentes)
 
-def enviar_mensaje():
-    pass
+def enviar_mensaje(config, destinatario_email, mensaje):
+    """ Enviar mensaje vía correo electrónico """
+    try:
+        server = smtplib.SMTP(config.servidor_smtp, '587')
+        server.ehlo()
+        server.starttls()
+        server.ehlo()
+        server.login(config.email_direccion, config.email_contrasena)
+        server.sendmail(config.email_direccion, destinatario_email, mensaje)
+    except Exception as e:
+        click.echo('AVISO: Fallo en el envío de mensaje por correo electrónico.')
+    finally:
+        server.quit()
+
+def obtener_ano_mes_directorios():
+    """ Entrega el año y mes presente como textos para crear subdirectorios """
+    hoy = date.today()
+    ano = str(hoy.year)
+    meses = { 1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril', 5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto', 9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre' }
+    mes = meses[hoy.month]
+    return(ano, mes)
 
 
 @cli.command()
@@ -127,9 +153,11 @@ def leer(config):
         mensaje_crudo = mensaje_datos[0][1]
         mensaje_texto = mensaje_crudo.decode('utf-8')
         mensaje = email.message_from_string(mensaje_texto)
+        # Separar datos del remitente
+        remitente_nombre, remitente_direccion = email.utils.parseaddr(mensaje['from'])
         # Mostrar
         click.echo(f'To:      {mensaje["To"]}')
-        click.echo(f'From:    {mensaje["From"]}')
+        click.echo(f'From:    {remitente_direccion}')
         click.echo(f'Subject: {mensaje["Subject"]}')
         click.echo(f'Date:    {mensaje["Date"]}')
         click.echo()
@@ -147,28 +175,37 @@ def leer_clasificar(config):
         mensaje_crudo = mensaje_datos[0][1]
         mensaje_texto = mensaje_crudo.decode('utf-8')
         mensaje = email.message_from_string(mensaje_texto)
+        # Separar datos del remitente
+        remitente_nombre, remitente_direccion = email.utils.parseaddr(mensaje['from'])
         # Determinar la ruta de destino a donde depositar los archivos adjuntos
-        if mensaje["From"] in remitentes:
-            remitente = remitentes[mensaje["From"]]
+        if remitente_direccion in remitentes:
+            remitente = remitentes[remitente_direccion]
             destino_ruta = config.deposito_ruta + '/' + remitente['Ruta']
         else:
-            click.echo(f'AVISO: No hay ruta de destino, se omite mensaje de {mensaje["From"]}')
+            click.echo(f'AVISO: No hay ruta de destino, se omite mensaje de {remitente_direccion}')
             next
         # Validar que exista el subdirectorio
         if not os.path.exists(destino_ruta) or not os.path.isdir(destino_ruta):
-            click.echo(f'AVISO: No existe {destino_ruta}, se omite mensaje de {mensaje["From"]}')
+            click.echo(f'AVISO: No existe {destino_ruta}, se omite mensaje de {remitente_direccion}')
             next
+        # Si no existen, se crean los subdirectorios del año y mes presente
+        ano, mes = obtener_ano_mes_directorios()
+        destino_ruta = destino_ruta + '/' + str(ano)
+        if not os.path.exists(destino_ruta):
+            os.mkdir(destino_ruta)
+        destino_ruta = destino_ruta + '/' + mes
+        if not os.path.exists(destino_ruta):
+            os.mkdir(destino_ruta)
         # Bucle para las partes en el mensaje
         for parte in mensaje.walk():
             nombre = parte.get_filename()
-            # Si es un archivo adjunto
-            if bool(nombre):
-                # PENDIENTE Validar que sea un archivo PDF
-                # PENDIENTE Si no es PDF se pasa al siguiente
+            # Si es un archivo adjunto y termina con pdf
+            if bool(nombre) and nombre.endswith('.pdf'):
                 # Guardar archivo adjunto
                 archivo_ruta = os.path.join(destino_ruta, nombre)
                 with open(archivo_ruta, 'wb') as puntero:
                     puntero.write(parte.get_payload(decode=True))
+                click.echo(archivo_ruta)
 
 
 @cli.command()
