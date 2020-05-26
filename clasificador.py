@@ -178,7 +178,7 @@ def leer(config):
         salida.append(f'From:    {remitente_direccion}')
         salida.append(f'Subject: {mensaje["Subject"]}')
         salida.append(f'Date:    {mensaje["Date"]}')
-        salida.append()
+        salida.append('')
     if config.notificar:
         # Notificar vía correo electrónico
         enviar_mensaje(config, config.notificar, 'Clasificador ha leído los mensajes', '<br>'.join(salida))
@@ -206,11 +206,15 @@ def leer_clasificar(config):
             remitente = remitentes[remitente_direccion]
             destino_ruta = config.deposito_ruta + '/' + remitente['Ruta']
         else:
-            click.echo(salida.append(f'AVISO: Se omite mensaje de {remitente_direccion} porque no hay ruta de destino'))
+            linea = f'AVISO: Se omite mensaje de {remitente_direccion} porque no hay ruta de destino'
+            salida.append(linea)
+            click.echo(linea)
             continue
         # Validar que exista el subdirectorio
         if not os.path.exists(destino_ruta) or not os.path.isdir(destino_ruta):
-            click.echo(salida.append(f'AVISO: Se omite mensaje de {remitente_direccion} porque no existe {destino_ruta}'))
+            linea = f'AVISO: Se omite mensaje de {remitente_direccion} porque no existe {destino_ruta}'
+            salida.append(linea)
+            click.echo(linea)
             continue
         # Si no existen, se crean los subdirectorios del año y mes presente
         ano, mes = obtener_ano_mes_directorios()
@@ -230,11 +234,15 @@ def leer_clasificar(config):
                 archivo_ruta = os.path.join(destino_ruta, nombre)
                 with open(archivo_ruta, 'wb') as puntero:
                     puntero.write(parte.get_payload(decode=True))
-                click.echo(salida.append(f'Se guardó {archivo_ruta}'))
+                linea = f'Se guardó {archivo_ruta}'
+                salida.append(linea)
+                click.echo(linea)
                 adjuntos_guardados.append(archivo_ruta)
         # Si no se adjuntaron PDFs
         if len(adjuntos_guardados) == 0:
-            click.echo(salida.append(f'AVISO: El mensaje de {remitente_direccion} no tiene archivos PDF'))
+            linea = f'AVISO: El mensaje de {remitente_direccion} no tiene archivos PDF'
+            salida.append(linea)
+            click.echo(linea)
     if config.notificar:
         # Notificar vía correo electrónico
         enviar_mensaje(config, config.notificar, 'Clasificador ha leído y clasificado los mensajes', '<br>'.join(salida))
@@ -260,11 +268,15 @@ def leer_clasificar_responder(config):
             remitente = remitentes[remitente_direccion]
             destino_ruta = config.deposito_ruta + '/' + remitente['Ruta']
         else:
-            click.echo(salida.append(f'AVISO: Se omite mensaje de {remitente_direccion} porque no hay ruta de destino'))
+            linea = f'AVISO: Se omite mensaje de {remitente_direccion} porque no hay ruta de destino'
+            salida.append(linea)
+            click.echo(linea)
             continue
         # Validar que exista el subdirectorio
         if not os.path.exists(destino_ruta) or not os.path.isdir(destino_ruta):
-            click.echo(salida.append(f'AVISO: Se omite mensaje de {remitente_direccion} porque no existe {destino_ruta}'))
+            linea = f'AVISO: Se omite mensaje de {remitente_direccion} porque no existe {destino_ruta}'
+            salida.append(linea)
+            click.echo(linea)
             continue
         # Si no existen, se crean los subdirectorios del año y mes presente
         ano, mes = obtener_ano_mes_directorios()
@@ -284,32 +296,36 @@ def leer_clasificar_responder(config):
                 archivo_ruta = os.path.join(destino_ruta, nombre)
                 with open(archivo_ruta, 'wb') as puntero:
                     puntero.write(parte.get_payload(decode=True))
-                click.echo(salida.append(f'Se guardó {archivo_ruta}'))
+                linea = f'Se guardó {archivo_ruta}'
+                salida.append(linea)
+                click.echo(linea)
                 adjuntos_guardados.append(archivo_ruta)
         # Si no se adjuntaron PDFs
         if len(adjuntos_guardados) == 0:
-            click.echo(salida.append(f'AVISO: El mensaje de {remitente_direccion} no tiene archivos PDF'))
+            linea = f'AVISO: El mensaje de {remitente_direccion} no tiene archivos PDF'
+            salida.append(linea)
+            click.echo(linea)
         else:
             # Responder con Constancia de Publicación
             ahora = datetime.now()
             codigo_html = []
-            codigo_html.append('<h1>Poder Judicial<h1>')
+            codigo_html.append('<h1>PODER JUDICIAL<h1>')
             codigo_html.append('<h3>DEL ESTADO DE COAHUILA DE ZARAGOZA</h3>')
-            codigo_html.append('<h2>CONSTANCIA DE PUBLICACION</h2>')
+            codigo_html.append('<h2>CONSTANCIA DE RECEPCIÓN DE DOCUMENTOS</h2>')
             codigo_html.append('<p></p>')
-            codigo_html.append('<p>Número DI-{:02d}{:02d}{:02d}{:02d}/{:04d}</p>'.format(ahora.month, ahora.day, ahora.hour, ahora.minute, ahora.year)
+            codigo_html.append('<p>Número DI-{:02d}{:02d}{:02d}{:02d}/{:04d}</p>'.format(ahora.month, ahora.day, ahora.hour, ahora.minute, ahora.year))
             codigo_html.append('<p></p>')
-            codigo_html.append('<p>{}</p>'.format(remitente['Juzgado']))
+            codigo_html.append('<p><b>{}</b></p>'.format(remitente['Juzgado']))
             codigo_html.append('<p>{}</p>'.format(remitente['Distrito']))
             codigo_html.append('<p></p>')
             codigo_html.append('<p>P R E S E N T E</p>')
             codigo_html.append('<p></p>')
-            codigo_html.append('<p>Se hace constar que el sistema del portal de Internet del Poder Judicial de Coahuila de Zaragoza, a las {:02d}:{:02d} horas, de {:02d} de {} {} se difundió el/los documento(s) con los siguientes datos:</p>'.format(ahora.hour, ahora.minute, ahora.day, mes, ano))
-            codigo_html.append('<p></p>')
+            codigo_html.append('<p>Por este medio se confirma la recepción de su documento a las {:02d}:{:02d} horas de {:02d} de {} {}:</p>'.format(ahora.hour, ahora.minute, ahora.day, mes, ano))
             codigo_html.append('<ul>')
             for archivo_ruta in adjuntos_guardados:
                 codigo_html.append('<li>{}<li>'.format(os.path.basename(archivo_ruta)))
             codigo_html.append('</ul>')
+            codigo_html.append('<p>Mismo que estará disponible en el sitio web del Poder Judicial de Coahuila de Zaragoza a la brevedad:</p>')
             codigo_html.append('<p></p>')
             codigo_html.append('<p>Lo anterior para los efectos legales que haya lugar.</p>')
             codigo_html.append('<p></p>')
