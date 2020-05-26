@@ -5,18 +5,19 @@ import email
 import imaplib
 import os
 import smtplib
-import time
 import sys
-from datetime import date
+from datetime import datetime, date
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
+from tabulate import tabulate
 
 
 class Config(object):
 
     def __init__(self):
         self.rama = ''
+        self.notificar = ''
         self.servidor_imap = ''
         self.servidor_smtp = ''
         self.remitentes_csv_ruta = ''
@@ -30,14 +31,17 @@ pass_config = click.make_pass_decorator(Config, ensure=True)
 
 @click.group()
 @click.option('--rama', default='', type=str, help='Acuerdos, Edictos o Sentencias')
+@click.option('--notificar', default='', type=str, help='Correo electrónico a quien notificar')
 @pass_config
-def cli(config, rama):
+def cli(config, rama, notificar):
     click.echo('Hola, ¡soy Clasificador!')
     # Rama
     config.rama = rama.title()
     if not config.rama in ('Acuerdos', 'Edictos', 'Sentencias'):
         click.echo('ERROR: Rama no programada.')
         sys.exit(1)
+    # Notificar
+    config.notificar = notificar
     # Configuración
     settings = configparser.ConfigParser()
     settings.read('settings.ini')
@@ -107,15 +111,22 @@ def cargar_remitentes(config):
                     }
     return(remitentes)
 
-def enviar_mensaje(config, destinatario_email, mensaje):
+def enviar_mensaje(config, destinatario_email, asunto, contenido):
     """ Enviar mensaje vía correo electrónico """
+    # Armar mensaje
+    mensaje = MIMEMultipart()
+    mensaje['Subject'] = asunto
+    mensaje['From'] = config.email_direccion
+    mensaje['To'] = destinatario_email
+    mensaje.attach(MIMEText(contenido, 'html'))
+    # Enviar mensaje
     try:
         server = smtplib.SMTP(config.servidor_smtp, '587')
         server.ehlo()
         server.starttls()
         server.ehlo()
         server.login(config.email_direccion, config.email_contrasena)
-        server.sendmail(config.email_direccion, destinatario_email, mensaje)
+        server.sendmail(config.email_direccion, destinatario_email, mensaje.as_string())
     except Exception as e:
         click.echo('AVISO: Fallo en el envío de mensaje por correo electrónico.')
     finally:
@@ -135,11 +146,17 @@ def obtener_ano_mes_directorios():
 def informar(config):
     """ Informar con una línea breve en pantalla """
     click.echo('Voy a informar...')
-    click.echo('-- Remitentes')
+    tabla = [['e-mail', 'Mover a']]
     remitentes = cargar_remitentes(config)
     for email, informacion in remitentes.items():
-        click.echo('   {} {}'.format(email, informacion['Ruta']))
-    click.echo()
+        tabla.append([email, informacion['Ruta']])
+    if config.notificar:
+        # Notificar vía correo electrónico
+        asunto = 'Clasificador mandó un informe del ' + str(date.today())
+        contenido = tabulate(tabla, headers='firstrow', tablefmt='html')
+        enviar_mensaje(config, config.notificar, asunto, contenido)
+    else:
+        click.echo(tabulate(tabla, headers='firstrow'))
 
 
 @cli.command()
@@ -147,6 +164,7 @@ def informar(config):
 def leer(config):
     """ Leer """
     click.echo('Voy a leer...')
+    salida = []
     mail, inbox_datos = cargar_inbox(config)
     for item in inbox_datos[0].split(): # Recorre los mensajes sin leer
         mensaje_tipo, mensaje_datos = mail.fetch(item, '(RFC822)' )
@@ -156,11 +174,16 @@ def leer(config):
         # Separar datos del remitente
         remitente_nombre, remitente_direccion = email.utils.parseaddr(mensaje['from'])
         # Mostrar
-        click.echo(f'To:      {mensaje["To"]}')
-        click.echo(f'From:    {remitente_direccion}')
-        click.echo(f'Subject: {mensaje["Subject"]}')
-        click.echo(f'Date:    {mensaje["Date"]}')
-        click.echo()
+        salida.append(f'To:      {mensaje["To"]}')
+        salida.append(f'From:    {remitente_direccion}')
+        salida.append(f'Subject: {mensaje["Subject"]}')
+        salida.append(f'Date:    {mensaje["Date"]}')
+        salida.append()
+    if config.notificar:
+        # Notificar vía correo electrónico
+        enviar_mensaje(config, config.notificar, 'Clasificador ha leído los mensajes', '<br>'.join(salida))
+    else:
+        click.echo('\n'.join(salida))
 
 
 @cli.command()
@@ -168,6 +191,7 @@ def leer(config):
 def leer_clasificar(config):
     """ Leer y clasificar """
     click.echo('Voy a leer y clasificar...')
+    salida = []
     remitentes = cargar_remitentes(config)
     mail, inbox_datos = cargar_inbox(config)
     for item in inbox_datos[0].split(): # Recorre los mensajes sin leer
@@ -182,12 +206,12 @@ def leer_clasificar(config):
             remitente = remitentes[remitente_direccion]
             destino_ruta = config.deposito_ruta + '/' + remitente['Ruta']
         else:
-            click.echo(f'AVISO: No hay ruta de destino, se omite mensaje de {remitente_direccion}')
-            next
+            click.echo(salida.append(f'AVISO: Se omite mensaje de {remitente_direccion} porque no hay ruta de destino'))
+            continue
         # Validar que exista el subdirectorio
         if not os.path.exists(destino_ruta) or not os.path.isdir(destino_ruta):
-            click.echo(f'AVISO: No existe {destino_ruta}, se omite mensaje de {remitente_direccion}')
-            next
+            click.echo(salida.append(f'AVISO: Se omite mensaje de {remitente_direccion} porque no existe {destino_ruta}'))
+            continue
         # Si no existen, se crean los subdirectorios del año y mes presente
         ano, mes = obtener_ano_mes_directorios()
         destino_ruta = destino_ruta + '/' + str(ano)
@@ -197,6 +221,7 @@ def leer_clasificar(config):
         if not os.path.exists(destino_ruta):
             os.mkdir(destino_ruta)
         # Bucle para las partes en el mensaje
+        adjuntos_guardados = []
         for parte in mensaje.walk():
             nombre = parte.get_filename()
             # Si es un archivo adjunto y termina con pdf
@@ -205,14 +230,97 @@ def leer_clasificar(config):
                 archivo_ruta = os.path.join(destino_ruta, nombre)
                 with open(archivo_ruta, 'wb') as puntero:
                     puntero.write(parte.get_payload(decode=True))
-                click.echo(archivo_ruta)
+                click.echo(salida.append(f'Se guardó {archivo_ruta}'))
+                adjuntos_guardados.append(archivo_ruta)
+        # Si no se adjuntaron PDFs
+        if len(adjuntos_guardados) == 0:
+            click.echo(salida.append(f'AVISO: El mensaje de {remitente_direccion} no tiene archivos PDF'))
+    if config.notificar:
+        # Notificar vía correo electrónico
+        enviar_mensaje(config, config.notificar, 'Clasificador ha leído y clasificado los mensajes', '<br>'.join(salida))
 
 
 @cli.command()
 @pass_config
 def leer_clasificar_responder(config):
     """ Leer, clasificar y responder """
-    click.echo('Voy a leer, clasificar y responder... nada aun.')
+    click.echo('Voy a leer, clasificar y responder...')
+    salida = []
+    remitentes = cargar_remitentes(config)
+    mail, inbox_datos = cargar_inbox(config)
+    for item in inbox_datos[0].split(): # Recorre los mensajes sin leer
+        mensaje_tipo, mensaje_datos = mail.fetch(item, '(RFC822)' )
+        mensaje_crudo = mensaje_datos[0][1]
+        mensaje_texto = mensaje_crudo.decode('utf-8')
+        mensaje = email.message_from_string(mensaje_texto)
+        # Separar datos del remitente
+        remitente_nombre, remitente_direccion = email.utils.parseaddr(mensaje['from'])
+        # Determinar la ruta de destino a donde depositar los archivos adjuntos
+        if remitente_direccion in remitentes:
+            remitente = remitentes[remitente_direccion]
+            destino_ruta = config.deposito_ruta + '/' + remitente['Ruta']
+        else:
+            click.echo(salida.append(f'AVISO: Se omite mensaje de {remitente_direccion} porque no hay ruta de destino'))
+            continue
+        # Validar que exista el subdirectorio
+        if not os.path.exists(destino_ruta) or not os.path.isdir(destino_ruta):
+            click.echo(salida.append(f'AVISO: Se omite mensaje de {remitente_direccion} porque no existe {destino_ruta}'))
+            continue
+        # Si no existen, se crean los subdirectorios del año y mes presente
+        ano, mes = obtener_ano_mes_directorios()
+        destino_ruta = destino_ruta + '/' + str(ano)
+        if not os.path.exists(destino_ruta):
+            os.mkdir(destino_ruta)
+        destino_ruta = destino_ruta + '/' + mes
+        if not os.path.exists(destino_ruta):
+            os.mkdir(destino_ruta)
+        # Bucle para las partes en el mensaje
+        adjuntos_guardados = []
+        for parte in mensaje.walk():
+            nombre = parte.get_filename()
+            # Si es un archivo adjunto y termina con pdf
+            if bool(nombre) and nombre.endswith('.pdf'):
+                # Guardar archivo adjunto
+                archivo_ruta = os.path.join(destino_ruta, nombre)
+                with open(archivo_ruta, 'wb') as puntero:
+                    puntero.write(parte.get_payload(decode=True))
+                click.echo(salida.append(f'Se guardó {archivo_ruta}'))
+                adjuntos_guardados.append(archivo_ruta)
+        # Si no se adjuntaron PDFs
+        if len(adjuntos_guardados) == 0:
+            click.echo(salida.append(f'AVISO: El mensaje de {remitente_direccion} no tiene archivos PDF'))
+        else:
+            # Responder con Constancia de Publicación
+            ahora = datetime.now()
+            codigo_html = []
+            codigo_html.append('<h1>Poder Judicial<h1>')
+            codigo_html.append('<h3>DEL ESTADO DE COAHUILA DE ZARAGOZA</h3>')
+            codigo_html.append('<h2>CONSTANCIA DE PUBLICACION</h2>')
+            codigo_html.append('<p></p>')
+            codigo_html.append('<p>Número DI-{:02d}{:02d}{:02d}{:02d}/{:04d}</p>'.format(ahora.month, ahora.day, ahora.hour, ahora.minute, ahora.year)
+            codigo_html.append('<p></p>')
+            codigo_html.append('<p>{}</p>'.format(remitente['Juzgado']))
+            codigo_html.append('<p>{}</p>'.format(remitente['Distrito']))
+            codigo_html.append('<p></p>')
+            codigo_html.append('<p>P R E S E N T E</p>')
+            codigo_html.append('<p></p>')
+            codigo_html.append('<p>Se hace constar que el sistema del portal de Internet del Poder Judicial de Coahuila de Zaragoza, a las {:02d}:{:02d} horas, de {:02d} de {} {} se difundió el/los documento(s) con los siguientes datos:</p>'.format(ahora.hour, ahora.minute, ahora.day, mes, ano))
+            codigo_html.append('<p></p>')
+            codigo_html.append('<ul>')
+            for archivo_ruta in adjuntos_guardados:
+                codigo_html.append('<li>{}<li>'.format(os.path.basename(archivo_ruta)))
+            codigo_html.append('</ul>')
+            codigo_html.append('<p></p>')
+            codigo_html.append('<p>Lo anterior para los efectos legales que haya lugar.</p>')
+            codigo_html.append('<p></p>')
+            codigo_html.append('<p>ATENTAMENTE</p>')
+            codigo_html.append('<p>SALTILLO, COAHUILA DE ZARAGOZA, A {:02d} DE {} DE {}</p>'.format(ahora.day, mes.upper(), ano))
+            codigo_html.append('<p>DIRECCIÓN DE INFORMÁTICA</p>')
+            codigo_html.append('<p></p>')
+            enviar_mensaje(config, remitente_direccion, 'Constancia de Publicación', '\n'.join(codigo_html))
+    if config.notificar:
+        # Notificar vía correo electrónico
+        enviar_mensaje(config, config.notificar, 'Clasificador ha leído, clasificado y respondido los mensajes', '<br>'.join(salida))
 
 
 cli.add_command(informar)
