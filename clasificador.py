@@ -109,13 +109,13 @@ def cargar_remitentes(config):
                 if config.rama == 'Edictos':
                     remitentes[renglon['e-mail']] = {
                         'Distrito': renglon['Distrito'],
-                        'Juzgado': renglon['Juzgado'],
+                        'Notaría': renglon['Notaría'],
                         'Ruta': renglon[destino_columna],
                         }
                 else:
                     remitentes[renglon['e-mail']] = {
                         'Distrito': renglon['Distrito'],
-                        'Notaría': renglon['Notaría'],
+                        'Juzgado': renglon['Juzgado'],
                         'Ruta': renglon[destino_columna],
                         }
     return(remitentes)
