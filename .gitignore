@@ -1,6 +1,6 @@
+*.csv
 *.egg-info
 *.pyc
 __pycache__
 .directory
-remitentes.csv
 settings.ini
