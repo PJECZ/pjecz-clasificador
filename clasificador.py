@@ -48,7 +48,7 @@ def cli(config, rama, notificar):
     try:
         config.servidor_imap = settings['Global']['servidor_imap']
         config.servidor_smtp = settings['Global']['servidor_smtp']
-        config.remitentes_csv_ruta = settings['Global']['remitentes_csv_ruta']
+        config.remitentes_csv_ruta = settings[config.rama]['remitentes_csv_ruta']
         config.email_direccion = settings[config.rama]['email_direccion']
         config.email_contrasena = settings[config.rama]['email_contrasena']
         config.deposito_ruta = settings[config.rama]['deposito_ruta']
@@ -94,6 +94,8 @@ def cargar_remitentes(config):
     """ Cargar archivos CSV con datos de los remitentes, entrega un diccionario para consultar con la dirección """
     if config.rama == 'Acuerdos':
         destino_columna = 'Mover Listas de Acuerdos a'
+    elif config.rama == 'Edictos':
+        destino_columna = 'Mover a'
     elif config.rama == 'Sentencias':
         destino_columna = 'Mover Sentencias a'
     else:
@@ -104,11 +106,18 @@ def cargar_remitentes(config):
         lector = csv.DictReader(puntero)
         for renglon in lector:
             if renglon['e-mail'] != '' and renglon[destino_columna] != '':
-                remitentes[renglon['e-mail']] = {
-                    'Distrito': renglon['Distrito'],
-                    'Juzgado': renglon['Juzgado'],
-                    'Ruta': renglon[destino_columna],
-                    }
+                if config.rama == 'Edictos':
+                    remitentes[renglon['e-mail']] = {
+                        'Distrito': renglon['Distrito'],
+                        'Notaría': renglon['Notaría'],
+                        'Ruta': renglon[destino_columna],
+                        }
+                else:
+                    remitentes[renglon['e-mail']] = {
+                        'Distrito': renglon['Distrito'],
+                        'Juzgado': renglon['Juzgado'],
+                        'Ruta': renglon[destino_columna],
+                        }
     return(remitentes)
 
 def enviar_mensaje(config, destinatario_email, asunto, contenido):
@@ -131,6 +140,66 @@ def enviar_mensaje(config, destinatario_email, asunto, contenido):
         click.echo('AVISO: Fallo en el envío de mensaje por correo electrónico.')
     finally:
         server.quit()
+
+def responder_mensaje_acuerdos(config, destinatario_direccion, juzgado, distrito, adjuntos_guardados):
+    # Responder con Constancia de Recepción
+    ahora = datetime.now()
+    ano, mes = obtener_ano_mes_directorios()
+    codigo_html = []
+    codigo_html.append('<h1>PODER JUDICIAL<h1>')
+    codigo_html.append('<h3>DEL ESTADO DE COAHUILA DE ZARAGOZA</h3>')
+    codigo_html.append('<h2>CONSTANCIA DE RECEPCIÓN DE DOCUMENTOS</h2>')
+    codigo_html.append('<p></p>')
+    codigo_html.append('<p>Número DI-{:02d}{:02d}{:02d}{:02d}/{:04d}</p>'.format(ahora.month, ahora.day, ahora.hour, ahora.minute, ahora.year))
+    codigo_html.append('<p></p>')
+    codigo_html.append('<p><b>{}</b></p>'.format(juzgado))
+    codigo_html.append('<p>{}</p>'.format(distrito))
+    codigo_html.append('<p></p>')
+    codigo_html.append('<p>P R E S E N T E</p>')
+    codigo_html.append('<p></p>')
+    codigo_html.append('<p>Por este medio se confirma la recepción de su documento a las {:02d}:{:02d} horas de {:02d} de {} {}:</p>'.format(ahora.hour, ahora.minute, ahora.day, mes, ano))
+    codigo_html.append('<ul>')
+    for archivo_ruta in adjuntos_guardados:
+        codigo_html.append('<li>{}<li>'.format(os.path.basename(archivo_ruta)))
+    codigo_html.append('</ul>')
+    codigo_html.append('<p>Mismo que estará disponible en el sitio web del Poder Judicial de Coahuila de Zaragoza a la brevedad:</p>')
+    codigo_html.append('<p></p>')
+    codigo_html.append('<p>Lo anterior para los efectos legales que haya lugar.</p>')
+    codigo_html.append('<p></p>')
+    codigo_html.append('<p>ATENTAMENTE</p>')
+    codigo_html.append('<p>SALTILLO, COAHUILA DE ZARAGOZA, A {:02d} DE {} DE {}</p>'.format(ahora.day, mes.upper(), ano))
+    codigo_html.append('<p>DIRECCIÓN DE INFORMÁTICA</p>')
+    codigo_html.append('<p></p>')
+    enviar_mensaje(config, destinatario_direccion, 'Constancia de Publicación', '\n'.join(codigo_html))
+
+def responder_mensaje_edictos(config, destinatario_direccion, notaria, distrito, adjuntos_guardados):
+    """ Responder """
+    ahora = datetime.now()
+    ano, mes = obtener_ano_mes_directorios()
+    codigo_html = []
+    codigo_html.append('<h1>PODER JUDICIAL<h1>')
+    codigo_html.append('<h3>DEL ESTADO DE COAHUILA DE ZARAGOZA</h3>')
+    codigo_html.append('<h2>CONSTANCIA DE PUBLICACIÓN</h2>')
+    codigo_html.append('<p></p>')
+    codigo_html.append('<p>Número DI-{:02d}{:02d}{:02d}{:02d}/{:04d}</p>'.format(ahora.month, ahora.day, ahora.hour, ahora.minute, ahora.year))
+    codigo_html.append('<p></p>')
+    codigo_html.append('<p><b>Notaría {}</b></p>'.format(notaria))
+    codigo_html.append('<p>{}</p>'.format(distrito))
+    codigo_html.append('<p></p>')
+    codigo_html.append('<p>P R E S E N T E</p>')
+    codigo_html.append('<p></p>')
+    codigo_html.append('<p>Se hace constar que en la aplicación electrónica "Edictos en Línea" del sitio web del Poder Judicial del Estado de Coahuila de Zaragoza se difundieron los siguientes documentos:</p>')
+    codigo_html.append('<ul>')
+    for archivo_ruta in adjuntos_guardados:
+        codigo_html.append('<li>{}<li>'.format(os.path.basename(archivo_ruta)))
+    codigo_html.append('</ul>')
+    codigo_html.append('<p>Lo anterior para los efectos legales que haya lugar.</p>')
+    codigo_html.append('<p></p>')
+    codigo_html.append('<p>ATENTAMENTE</p>')
+    codigo_html.append('<p>SALTILLO, COAHUILA DE ZARAGOZA, A {:02d} DE {} DE {}</p>'.format(ahora.day, mes.upper(), ano))
+    codigo_html.append('<p>DIRECCIÓN DE INFORMÁTICA</p>')
+    codigo_html.append('<p></p>')
+    enviar_mensaje(config, destinatario_direccion, 'Constancia de Publicación', '\n'.join(codigo_html))
 
 def obtener_ano_mes_directorios():
     """ Entrega el año y mes presente como textos para crear subdirectorios """
@@ -174,10 +243,10 @@ def leer(config):
         # Separar datos del remitente
         remitente_nombre, remitente_direccion = email.utils.parseaddr(mensaje['from'])
         # Mostrar
-        salida.append(f'To:      {mensaje["To"]}')
-        salida.append(f'From:    {remitente_direccion}')
-        salida.append(f'Subject: {mensaje["Subject"]}')
-        salida.append(f'Date:    {mensaje["Date"]}')
+        salida.append(f'De:     {mensaje["To"]}')
+        salida.append(f'Para:   {remitente_direccion}')
+        salida.append(f'Asunto: {mensaje["Subject"]}')
+        salida.append(f'Fecha:  {mensaje["Date"]}')
         salida.append('')
     if config.notificar:
         # Notificar vía correo electrónico
@@ -306,34 +375,12 @@ def leer_clasificar_responder(config):
             salida.append(linea)
             click.echo(linea)
         else:
-            # Responder con Constancia de Publicación
-            ahora = datetime.now()
-            codigo_html = []
-            codigo_html.append('<h1>PODER JUDICIAL<h1>')
-            codigo_html.append('<h3>DEL ESTADO DE COAHUILA DE ZARAGOZA</h3>')
-            codigo_html.append('<h2>CONSTANCIA DE RECEPCIÓN DE DOCUMENTOS</h2>')
-            codigo_html.append('<p></p>')
-            codigo_html.append('<p>Número DI-{:02d}{:02d}{:02d}{:02d}/{:04d}</p>'.format(ahora.month, ahora.day, ahora.hour, ahora.minute, ahora.year))
-            codigo_html.append('<p></p>')
-            codigo_html.append('<p><b>{}</b></p>'.format(remitente['Juzgado']))
-            codigo_html.append('<p>{}</p>'.format(remitente['Distrito']))
-            codigo_html.append('<p></p>')
-            codigo_html.append('<p>P R E S E N T E</p>')
-            codigo_html.append('<p></p>')
-            codigo_html.append('<p>Por este medio se confirma la recepción de su documento a las {:02d}:{:02d} horas de {:02d} de {} {}:</p>'.format(ahora.hour, ahora.minute, ahora.day, mes, ano))
-            codigo_html.append('<ul>')
-            for archivo_ruta in adjuntos_guardados:
-                codigo_html.append('<li>{}<li>'.format(os.path.basename(archivo_ruta)))
-            codigo_html.append('</ul>')
-            codigo_html.append('<p>Mismo que estará disponible en el sitio web del Poder Judicial de Coahuila de Zaragoza a la brevedad:</p>')
-            codigo_html.append('<p></p>')
-            codigo_html.append('<p>Lo anterior para los efectos legales que haya lugar.</p>')
-            codigo_html.append('<p></p>')
-            codigo_html.append('<p>ATENTAMENTE</p>')
-            codigo_html.append('<p>SALTILLO, COAHUILA DE ZARAGOZA, A {:02d} DE {} DE {}</p>'.format(ahora.day, mes.upper(), ano))
-            codigo_html.append('<p>DIRECCIÓN DE INFORMÁTICA</p>')
-            codigo_html.append('<p></p>')
-            enviar_mensaje(config, remitente_direccion, 'Constancia de Publicación', '\n'.join(codigo_html))
+            if config.rama == 'Acuerdos':
+                # Responder con Constancia de Recepción
+                responder_mensaje_acuerdos(config, remitente_direccion, remitente['Juzgado'], remitente['Distrito'], adjuntos_guardados)
+            elif config.rama == 'Edictos':
+                # Responder con Constancia de Recepción
+                responder_mensaje_edictos(config, remitente_direccion, remitente['Notaría'], remitente['Distrito'], adjuntos_guardados)
     if config.notificar:
         # Notificar vía correo electrónico
         enviar_mensaje(config, config.notificar, 'Clasificador ha leído, clasificado y respondido los mensajes', '<br>'.join(salida))
