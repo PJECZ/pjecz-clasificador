@@ -1,0 +1,33 @@
+<h1>PODER JUDICIAL<h1>
+<h3>DEL ESTADO DE COAHUILA DE ZARAGOZA</h3>
+<h2>CONSTANCIA DE PUBLICACIÓN</h2>
+<p></p>
+
+<p>Número DI-{{ identificador }}</p>
+<p></p>
+
+<p><b>{{ autoridad }}</b></p>
+<p>{{ distrito }}</p>
+<p></p>
+
+<p>P R E S E N T E</p>
+<p></p>
+
+<p>Se hace constar que para la aplicación electrónica "Edictos en Línea" del sitio web del Poder Judicial del Estado de Coahuila de Zaragoza se recibieron los siguientes documentos:</p>
+
+<ul>
+{% for archivo in archivos %}
+    <li>{{ archivo }}</li>
+{% endfor %}
+</ul>
+
+<p>Mismo que estará disponible en el sitio web del Poder Judicial de Coahuila de Zaragoza a la brevedad:</p>
+<p></p>
+
+<p>Lo anterior para los efectos legales que haya lugar.</p>
+<p></p>
+
+<p>ATENTAMENTE</p>
+<p>SALTILLO, COAHUILA DE ZARAGOZA, A {{ dia }} DE {{ mes }} DE {{ ano }}</p>
+<p>DIRECCIÓN DE INFORMÁTICA</p>
+
