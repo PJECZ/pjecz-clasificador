@@ -6,7 +6,7 @@ setup(
     py_modules=[
         'clasificador',
         'contestador',
-        ],
+    ],
     install_requires=[
         'Click',
         'google-api-python-client',
@@ -15,10 +15,10 @@ setup(
         'imap_tools',
         'Jinja2',
         'tabulate',
-        ],
+    ],
     entry_points="""
         [console_scripts]
         clasificador=clasificador:cli
         contestador=contestador:cli
         """,
-    )
+)

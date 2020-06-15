@@ -1,5 +1,3 @@
-
-
 class Adjunto(object):
     """ Archivo adjunto en un mensaje """
 

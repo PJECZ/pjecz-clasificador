@@ -19,7 +19,7 @@ class Deposito(object):
 
     def rastrear(self):
         """ Obtener los archivos en el depósito """
-        if self.rastreado == False:
+        if self.rastreado is False:
             if not os.path.exists(self.config.deposito_ruta):
                 raise Exception('ERROR: No existe deposito_ruta.')
             self.archivos = self.rastrear_recursivo(self.config.deposito_ruta)

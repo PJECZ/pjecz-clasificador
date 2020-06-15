@@ -30,7 +30,7 @@ class Clientes(object):
                             'distrito': renglon[self.config.remitentes_csv_columna_distrito],
                             'autoridad': renglon[self.config.remitentes_csv_columna_autoridad],
                             'ruta': renglon[self.config.remitentes_csv_columna_ruta],
-                            }
+                        }
         return(self.clientes)
 
     def alimentar_desde_google_sheets_api(self):
@@ -66,7 +66,7 @@ class Clientes(object):
                     'distrito': row[self.config.google_sheets_api_columna_distrito],
                     'autoridad': row[self.config.google_sheets_api_columna_autoridad],
                     'ruta': row[self.config.google_sheets_api_columna_ruta],
-                    }
+                }
         return(self.clientes)
 
     def alimentar(self):
@@ -81,7 +81,7 @@ class Clientes(object):
 
     def filtrar_con_archivo_ruta(self, archivo_ruta):
         """ Filtrar los clientes donde ruta sea el inicio de archivo_ruta """
-        if self.alimentado == False:
+        if self.alimentado is False:
             self.alimentar()
         filtrados = {}
         for email, informacion in self.clientes.items():
@@ -90,7 +90,7 @@ class Clientes(object):
                     'distrito': informacion['distrito'],
                     'autoridad': informacion['autoridad'],
                     'ruta': informacion['ruta'],
-                    }
+                }
         return(filtrados)
 
     def __repr__(self):

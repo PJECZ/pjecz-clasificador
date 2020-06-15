@@ -7,12 +7,14 @@ from tabulate import tabulate
 
 from clientes.clientes import Clientes
 from depositos.acuse import Acuse
-from depositos.depositos import Depositos
+from depositos.deposito import Deposito
 
 
 class Config(object):
 
     def __init__(self):
+        self.fecha = str(date.today())
+        self.rama = ''
         self.servidor_imap = ''
         self.servidor_smtp = ''
         self.deposito_ruta = ''
@@ -29,8 +31,6 @@ class Config(object):
         self.remitentes_csv_columna_autoridad = ''
         self.remitentes_csv_columna_email = ''
         self.remitentes_csv_columna_ruta = ''
-        self.fecha = str(date.today())
-        self.rama = ''
 
 
 pass_config = click.make_pass_decorator(Config, ensure=True)
@@ -52,7 +52,7 @@ def cli(config, fecha, rama):
             sys.exit(1)
     # Rama
     config.rama = rama.title()
-    if not config.rama in ('Acuerdos', 'Edictos', 'Sentencias'):
+    if config.rama not in ('Acuerdos', 'Edictos', 'Sentencias'):
         click.echo('ERROR: Rama no programada.')
         sys.exit(1)
     # Configuración
@@ -118,7 +118,7 @@ def rastrear(config):
     click.echo('Voy a rastrear...')
     click.echo(f'Fecha: {config.fecha}')
     # Mostrar los archivos encontrados en el depósito
-    deposito = Depositos(config)
+    deposito = Deposito(config)
     for item in deposito.rastrear():
         click.echo(item)
     sys.exit(0)
@@ -134,7 +134,7 @@ def responder(config, enviar):
     clientes = Clientes(config)
     clientes.alimentar()
     # Rastrear el depósito
-    deposito = Depositos(config)
+    deposito = Deposito(config)
     archivos = deposito.rastrear()
     # Mostrar en pantalla
     for archivo in archivos:
@@ -146,13 +146,14 @@ def responder(config, enviar):
             for email, informacion in destinatarios.items():
                 if enviar:
                     click.echo(f"- Enviando a {informacion['autoridad']} <{email}>")
+                    acuse = Acuse(config)
                     acuse.elaborar_asunto()
                     acuse.elaborar_contenido(
-                        identificador = '123123',
-                        autoridad = informacion['autoridad'],
-                        distrito = informacion['distrito'],
-                        archivos = [os.path.basename(archivo)],
-                        )
+                        identificador='123123',
+                        autoridad=informacion['autoridad'],
+                        distrito=informacion['distrito'],
+                        archivos=[os.path.basename(archivo)],
+                    )
                     acuse.enviar(email, 'Constancia de Publicación')
                 else:
                     click.echo(f"- SIMULO que es para {informacion['autoridad']} <{email}>")

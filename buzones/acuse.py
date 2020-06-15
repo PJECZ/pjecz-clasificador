@@ -72,8 +72,9 @@ class Acuse(object):
             server.ehlo()
             server.login(self.config.email_direccion, self.config.email_contrasena)
             server.sendmail(self.config.email_direccion, destinatario_email, mensaje.as_string())
-        except Exception as e:
-            click.echo('AVISO: Fallo en el envío de mensaje por correo electrónico.')
+        except Exception:
+            # AVISO: Fallo en el envío de mensaje por correo electrónico.
+            pass
         finally:
             server.quit()
 

@@ -1,7 +1,3 @@
-from buzones.adjunto import Adjunto
-from buzones.acuse import Acuse
-
-
 class Mensaje(object):
     """ Mensaje recibido en el Buzón """
 
