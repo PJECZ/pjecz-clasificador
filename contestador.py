@@ -5,7 +5,6 @@ from datetime import datetime, date
 from tabulate import tabulate
 
 from clientes.clientes import Clientes
-from depositos.acuse import Acuse
 from depositos.deposito import Deposito
 
 
@@ -14,6 +13,7 @@ class Config(object):
     def __init__(self):
         self.fecha = str(date.today())
         self.rama = ''
+        self.salt = ''
         self.servidor_imap = ''
         self.servidor_smtp = ''
         self.deposito_ruta = ''
@@ -58,6 +58,7 @@ def cli(config, fecha, rama):
     settings = configparser.ConfigParser()
     settings.read('settings.ini')
     try:
+        config.salt = settings['Global']['salt']
         config.servidor_imap = settings['Global']['servidor_imap']
         config.servidor_smtp = settings['Global']['servidor_smtp']
         config.deposito_ruta = settings[config.rama]['deposito_ruta']
@@ -122,13 +123,13 @@ def rastrear(config):
     if deposito.cantidad == 0:
         click.echo(f'AVISO: No se encontraron documentos con fecha {config.fecha}')
     else:
-        for item in deposito.documentos:
-            click.echo(item)
+        for documento in deposito.documentos:
+            click.echo(documento.ruta)
     sys.exit(0)
 
 
 @cli.command()
-@click.option('--enviar', default=False, help='Enviar los mensajes')
+@click.option('--enviar', is_flag=True, help='Enviar mensajes')
 @pass_config
 def responder(config, enviar):
     """ Responder con un mensaje vía correo electrónico """
@@ -149,10 +150,14 @@ def responder(config, enviar):
             click.echo(f'AVISO: No hay destinatarios para {documento.ruta}')
         else:
             for email, informacion in destinatarios.items():
+                documento.definir_acuse()
                 if enviar:
                     documento.enviar_acuse(email)
                 else:
                     click.echo(f"- SIMULO envar mensaje a {email} sobre {documento.archivo}")
+                    click.echo(documento.acuse.asunto)
+                    click.echo(documento.acuse.contenido)
+                    click.echo()
     sys.exit(0)
 
 
