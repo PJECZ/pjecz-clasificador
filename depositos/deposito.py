@@ -1,4 +1,5 @@
 import os
+from depositos.documento import Documento
 
 
 class Deposito(object):
@@ -6,11 +7,12 @@ class Deposito(object):
 
     def __init__(self, config):
         self.config = config
-        self.archivos = []
+        self.documentos = []
+        self.cantidad = 0
         self.rastreado = False
 
     def rastrear_recursivo(self, ruta):
-        """ Obtener de forma recursiva todos los PDF que tengan la fecha dada """
+        """ Obtener de forma recursiva todos los documentos que tengan la fecha dada """
         for item in os.scandir(ruta):
             if item.is_dir(follow_symlinks=False):
                 yield from self.rastrear_recursivo(item.path)
@@ -18,13 +20,15 @@ class Deposito(object):
                 yield item.path[len(self.config.deposito_ruta) + 1:]
 
     def rastrear(self):
-        """ Obtener los archivos en el depósito """
+        """ Obtener los documentos en el depósito """
         if self.rastreado is False:
             if not os.path.exists(self.config.deposito_ruta):
                 raise Exception('ERROR: No existe deposito_ruta.')
-            self.archivos = self.rastrear_recursivo(self.config.deposito_ruta)
+            for ruta in list(self.rastrear_recursivo(self.config.deposito_ruta)):
+                self.documentos.append(Documento(self.config, ruta))
+            self.cantidad = len(self.documentos)
             self.rastreado = True
-        return(self.archivos)
+        return(self.documentos)
 
     def __repr__(self):
         return('<Deposito>')

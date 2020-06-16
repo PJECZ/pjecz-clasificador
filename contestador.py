@@ -1,6 +1,5 @@
 import click
 import configparser
-import os
 import sys
 from datetime import datetime, date
 from tabulate import tabulate
@@ -114,13 +113,17 @@ def informar(config):
 @cli.command()
 @pass_config
 def rastrear(config):
-    """ Rastrear archivos en la rama y fecha dada """
+    """ Rastrear documentos en la rama y fecha dada """
     click.echo('Voy a rastrear...')
     click.echo(f'Fecha: {config.fecha}')
-    # Mostrar los archivos encontrados en el depósito
+    # Mostrar los documentos encontrados en el depósito
     deposito = Deposito(config)
-    for item in deposito.rastrear():
-        click.echo(item)
+    deposito.rastrear()
+    if deposito.cantidad == 0:
+        click.echo(f'AVISO: No se encontraron documentos con fecha {config.fecha}')
+    else:
+        for item in deposito.documentos:
+            click.echo(item)
     sys.exit(0)
 
 
@@ -135,29 +138,21 @@ def responder(config, enviar):
     clientes.alimentar()
     # Rastrear el depósito
     deposito = Deposito(config)
-    archivos = deposito.rastrear()
+    deposito.rastrear()
+    if deposito.cantidad == 0:
+        click.echo(f'AVISO: No se encontraron documentos con fecha {config.fecha}')
+        sys.exit(0)
     # Mostrar en pantalla
-    for archivo in archivos:
-        destinatarios = clientes.filtrar_con_archivo_ruta(archivo)
+    for documento in deposito.documentos:
+        destinatarios = clientes.filtrar_con_archivo_ruta(documento.ruta)
         if len(destinatarios) == 0:
-            click.echo(f'AVISO: No hay destinatarios para {archivo}')
+            click.echo(f'AVISO: No hay destinatarios para {documento.ruta}')
         else:
-            click.echo(f'Para {archivo}')
             for email, informacion in destinatarios.items():
                 if enviar:
-                    click.echo(f"- Enviando a {informacion['autoridad']} <{email}>")
-                    acuse = Acuse(config)
-                    acuse.elaborar_asunto()
-                    acuse.elaborar_contenido(
-                        identificador='123123',
-                        autoridad=informacion['autoridad'],
-                        distrito=informacion['distrito'],
-                        archivos=[os.path.basename(archivo)],
-                    )
-                    acuse.enviar(email, 'Constancia de Publicación')
+                    documento.enviar_acuse(email)
                 else:
-                    click.echo(f"- SIMULO que es para {informacion['autoridad']} <{email}>")
-    # Enviar mensajes
+                    click.echo(f"- SIMULO envar mensaje a {email} sobre {documento.archivo}")
     sys.exit(0)
 
 

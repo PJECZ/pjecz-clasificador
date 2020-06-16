@@ -73,8 +73,7 @@ class Acuse(object):
             server.login(self.config.email_direccion, self.config.email_contrasena)
             server.sendmail(self.config.email_direccion, destinatario_email, mensaje.as_string())
         except Exception:
-            # AVISO: Fallo en el envío de mensaje por correo electrónico.
-            pass
+            raise Exception('AVISO: Fallo en el envío de mensaje por correo electrónico.')
         finally:
             server.quit()
 
