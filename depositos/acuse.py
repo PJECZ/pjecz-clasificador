@@ -32,7 +32,7 @@ class Acuse(object):
 
     def elaborar_contenido(self, identificador, autoridad, distrito, archivos):
         """ Elaborar contenido """
-        dia, mes, ano = hoy_dia_mes_ano()
+        dia, mes, ano = hoy_dia_mes_ano(self.config.fecha)
         if self.config.rama == 'Acuerdos':
             plantilla = self.plantillas_env.get_template('listas_de_acuerdos.html.jinja2')
         elif self.config.rama == 'Edictos':

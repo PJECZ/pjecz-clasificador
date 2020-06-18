@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 
 def mes_en_palabra(mes_numero=None):
@@ -11,9 +11,12 @@ def mes_en_palabra(mes_numero=None):
         return(meses[hoy.month])
 
 
-def hoy_dia_mes_ano():
-    hoy = date.today()
-    dia = '{:02d}'.format(hoy.day)
-    mes = mes_en_palabra(hoy.month)
-    ano = str(hoy.year)
+def hoy_dia_mes_ano(fecha=None):
+    if fecha is None:
+        fecha_date = date.today()
+    else:
+        fecha_date = datetime.strptime(fecha, '%Y-%m-%d')
+    dia = '{:02d}'.format(fecha_date.day)
+    mes = mes_en_palabra(fecha_date.month)
+    ano = str(fecha_date.year)
     return(dia, mes, ano)
