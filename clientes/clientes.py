@@ -62,11 +62,19 @@ class Clientes(object):
         self.clientes = {}
         if values:
             for row in values:
-                self.clientes[row[self.config.google_sheets_api_columna_email]] = {
-                    'distrito': row[self.config.google_sheets_api_columna_distrito],
-                    'autoridad': row[self.config.google_sheets_api_columna_autoridad],
-                    'ruta': row[self.config.google_sheets_api_columna_ruta],
-                }
+                try:
+                    email = row[self.config.google_sheets_api_columna_email]
+                    distrito = row[self.config.google_sheets_api_columna_distrito]
+                    autoridad = row[self.config.google_sheets_api_columna_autoridad]
+                    ruta = row[self.config.google_sheets_api_columna_ruta]
+                except IndexError:
+                    pass
+                else:
+                    self.clientes[email] = {
+                        'distrito': distrito,
+                        'autoridad': autoridad,
+                        'ruta': ruta,
+                    }
         return(self.clientes)
 
     def alimentar(self):
