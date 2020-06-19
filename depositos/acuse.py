@@ -24,6 +24,8 @@ class Acuse(object):
             self.asunto = 'Acuse de Publicación de Lista de Acuerdo'
         elif self.config.rama == 'Edictos':
             self.asunto = 'Acuse de Publicación de Edicto'
+        elif self.config.rama == 'Edictosjuzgados':
+            self.asunto = 'Acuse de Publicación de Edicto'
         elif self.config.rama == 'Sentencias':
             self.asunto = 'Acuse de Publicación de Sentencia'
         else:
@@ -36,6 +38,8 @@ class Acuse(object):
         if self.config.rama == 'Acuerdos':
             plantilla = self.plantillas_env.get_template('listas_de_acuerdos.html.jinja2')
         elif self.config.rama == 'Edictos':
+            plantilla = self.plantillas_env.get_template('edictos.html.jinja2')
+        elif self.config.rama == 'Edictosjuzgados':
             plantilla = self.plantillas_env.get_template('edictos.html.jinja2')
         elif self.config.rama == 'Sentencias':
             plantilla = self.plantillas_env.get_template('sentencias.html.jinja2')

@@ -37,7 +37,7 @@ pass_config = click.make_pass_decorator(Config, ensure=True)
 
 @click.group()
 @click.option('--fecha', default='', type=str, help='Fecha AAAA-MM-DD')
-@click.option('--rama', default='', type=str, help='Acuerdos, Edictos o Sentencias')
+@click.option('--rama', default='', type=str, help='Acuerdos, Edictos, EdictosJuzgados o Sentencias')
 @pass_config
 def cli(config, fecha, rama):
     click.echo('Hola, ¡soy Clasificador!')
@@ -51,7 +51,7 @@ def cli(config, fecha, rama):
             sys.exit(1)
     # Rama
     config.rama = rama.title()
-    if config.rama not in ('Acuerdos', 'Edictos', 'Sentencias'):
+    if config.rama not in ('Acuerdos', 'Edictos', 'Edictosjuzgados', 'Sentencias'):
         click.echo('ERROR: Rama no programada.')
         sys.exit(1)
     # Configuración
