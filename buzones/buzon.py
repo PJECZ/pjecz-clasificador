@@ -1,5 +1,6 @@
-from imap_tools import MailBox
+from imap_tools import MailBox, Q
 from buzones.mensaje import Mensaje
+from buzones.adjunto import Adjunto
 
 
 class Buzon(object):
@@ -13,14 +14,21 @@ class Buzon(object):
         """ Leer mensajes """
         self.mensajes = []
         with MailBox(self.config.servidor_imap).login(self.config.email_direccion, self.config.email_contrasena) as mailbox:
-            for msg in mailbox.fetch():
-                mensaje = Mensaje(
+            for msg in mailbox.fetch(Q(seen=False)):
+                adjuntos = []
+                for adj in msg.attachments:
+                    adjuntos.append(Adjunto(
+                        config=self.config,
+                        archivo_nombre=adj.filename,
+                        contenido_tipo=adj.content_type,
+                        contenido_binario=adj.payload,
+                    ))
+                self.mensajes.append(Mensaje(
                     config=self.config,
-                    email='',
+                    email=msg.from_,
                     asunto=msg.subject,
-                    adjuntos=[],
-                )
-                self.mensajes.append(mensaje)
+                    adjuntos=adjuntos,
+                ))
         return(self.mensajes)
 
     def clasificar_mensajes(self):
@@ -32,4 +40,7 @@ class Buzon(object):
         pass
 
     def __repr__(self):
-        return('<Buzon>')
+        if len(self.mensajes) > 0:
+            return('<Buzon> {} mensajes'.format(len(self.mensajes)))
+        else:
+            return('<Buzon> NO HAY mensajes sin leer.')

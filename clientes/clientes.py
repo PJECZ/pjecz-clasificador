@@ -25,12 +25,20 @@ class Clientes(object):
             with open(self.config.remitentes_csv_ruta) as puntero:
                 lector = csv.DictReader(puntero)
                 for renglon in lector:
-                    if renglon[self.config.remitentes_csv_columna_email] != '' and renglon[self.config.remitentes_csv_columna_ruta] != '':
-                        self.clientes[renglon[self.config.remitentes_csv_columna_email]] = {
-                            'distrito': renglon[self.config.remitentes_csv_columna_distrito],
-                            'autoridad': renglon[self.config.remitentes_csv_columna_autoridad],
-                            'ruta': renglon[self.config.remitentes_csv_columna_ruta],
-                        }
+                    try:
+                        email = renglon[self.config.remitentes_csv_columna_email]
+                        distrito = renglon[self.config.remitentes_csv_columna_distrito]
+                        autoridad = renglon[self.config.remitentes_csv_columna_autoridad]
+                        ruta = renglon[self.config.remitentes_csv_columna_ruta]
+                    except IndexError:
+                        pass
+                    else:
+                        if email != '' and distrito != '' and autoridad != '' and ruta != '':
+                            self.clientes[email] = {
+                                'distrito': distrito,
+                                'autoridad': autoridad,
+                                'ruta': ruta,
+                            }
         return(self.clientes)
 
     def alimentar_desde_google_sheets_api(self):
@@ -70,11 +78,12 @@ class Clientes(object):
                 except IndexError:
                     pass
                 else:
-                    self.clientes[email] = {
-                        'distrito': distrito,
-                        'autoridad': autoridad,
-                        'ruta': ruta,
-                    }
+                    if email != '' and distrito != '' and autoridad != '' and ruta != '':
+                        self.clientes[email] = {
+                            'distrito': distrito,
+                            'autoridad': autoridad,
+                            'ruta': ruta,
+                        }
         return(self.clientes)
 
     def alimentar(self):

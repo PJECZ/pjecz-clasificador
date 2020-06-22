@@ -1,38 +1,10 @@
 import click
-import configparser
 import sys
-from datetime import datetime, date
+from datetime import datetime
 from tabulate import tabulate
-
+from comunes.config import pass_config
 from clientes.clientes import Clientes
 from depositos.deposito import Deposito
-
-
-class Config(object):
-
-    def __init__(self):
-        self.fecha = str(date.today())
-        self.rama = ''
-        self.salt = ''
-        self.servidor_imap = ''
-        self.servidor_smtp = ''
-        self.deposito_ruta = ''
-        self.email_direccion = ''
-        self.email_contrasena = ''
-        self.google_sheets_api_spreadsheet_id = ''
-        self.google_sheets_api_rango = ''
-        self.google_sheets_api_columna_autoridad = ''
-        self.google_sheets_api_columna_distrito = ''
-        self.google_sheets_api_columna_email = ''
-        self.google_sheets_api_columna_ruta = ''
-        self.remitentes_csv_ruta = ''
-        self.remitentes_csv_columna_distrito = ''
-        self.remitentes_csv_columna_autoridad = ''
-        self.remitentes_csv_columna_email = ''
-        self.remitentes_csv_columna_ruta = ''
-
-
-pass_config = click.make_pass_decorator(Config, ensure=True)
 
 
 @click.group()
@@ -55,38 +27,9 @@ def cli(config, fecha, rama):
         click.echo('ERROR: Rama no programada.')
         sys.exit(1)
     # Configuración
-    settings = configparser.ConfigParser()
-    settings.read('settings.ini')
     try:
-        config.salt = settings['Global']['salt']
-        config.servidor_imap = settings['Global']['servidor_imap']
-        config.servidor_smtp = settings['Global']['servidor_smtp']
-        config.deposito_ruta = settings[config.rama]['deposito_ruta']
-        config.email_direccion = settings[config.rama]['email_direccion']
-        config.email_contrasena = settings[config.rama]['email_contrasena']
-        if 'google_sheets_api_spreadsheet_id' in settings[config.rama]:
-            config.google_sheets_api_spreadsheet_id = settings[config.rama]['google_sheets_api_spreadsheet_id']
-        if 'google_sheets_api_rango' in settings[config.rama]:
-            config.google_sheets_api_rango = settings[config.rama]['google_sheets_api_rango']
-        if 'google_sheets_api_columna_autoridad' in settings[config.rama]:
-            config.google_sheets_api_columna_autoridad = int(settings[config.rama]['google_sheets_api_columna_autoridad'])
-        if 'google_sheets_api_columna_distrito' in settings[config.rama]:
-            config.google_sheets_api_columna_distrito = int(settings[config.rama]['google_sheets_api_columna_distrito'])
-        if 'google_sheets_api_columna_email' in settings[config.rama]:
-            config.google_sheets_api_columna_email = int(settings[config.rama]['google_sheets_api_columna_email'])
-        if 'google_sheets_api_columna_ruta' in settings[config.rama]:
-            config.google_sheets_api_columna_ruta = int(settings[config.rama]['google_sheets_api_columna_ruta'])
-        if 'remitentes_csv_ruta' in settings[config.rama]:
-            config.remitentes_csv_ruta = settings[config.rama]['remitentes_csv_ruta']
-        if 'remitentes_csv_columna_distrito' in settings[config.rama]:
-            config.remitentes_csv_columna_distrito = settings[config.rama]['remitentes_csv_columna_distrito']
-        if 'remitentes_csv_columna_autoridad' in settings[config.rama]:
-            config.remitentes_csv_columna_autoridad = settings[config.rama]['remitentes_csv_columna_autoridad']
-        if 'remitentes_csv_columna_email' in settings[config.rama]:
-            config.remitentes_csv_columna_email = settings[config.rama]['remitentes_csv_columna_email']
-        if 'remitentes_csv_columna_ruta' in settings[config.rama]:
-            config.remitentes_csv_columna_ruta = settings[config.rama]['remitentes_csv_columna_ruta']
-    except KeyError:
+        config.cargar_configuraciones()
+    except Exception:
         click.echo('ERROR: Falta configuración en settings.ini')
         sys.exit(1)
 
