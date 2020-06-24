@@ -1,3 +1,6 @@
+from depositos.deposito import Deposito
+
+
 class Mensaje(object):
     """ Mensaje recibido en el Buzón """
 
@@ -6,12 +9,16 @@ class Mensaje(object):
         self.email = email
         self.asunto = asunto
         self.adjuntos = adjuntos
+        self.documentos = []
 
     def clasificar_adjuntos(self):
         """ Clasificar los adjuntos en el depósito """
         if len(self.adjuntos) == 0:
-            return('AVISO: Este mensaje no tiene archivos adjuntos.')
-        return('Se clasificaron N archivos adjuntos.')
+            return([])  # AVISO: Este mensaje no tiene archivos adjuntos
+        deposito = Deposito(self.config)
+        for adjunto in self.adjuntos:
+            self.documentos.append(deposito.guardar_documento(adjunto))
+        return(self.documentos)
 
     def responder_con_acuse(self):
         """ Responder con acuse de recibido """

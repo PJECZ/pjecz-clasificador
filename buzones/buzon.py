@@ -11,7 +11,7 @@ class Buzon(object):
         self.mensajes = []
 
     def leer_mensajes(self):
-        """ Leer mensajes """
+        """ Leer los mensajes en el buzón, entrega listado de Mensajes """
         self.mensajes = []
         with MailBox(self.config.servidor_imap).login(self.config.email_direccion, self.config.email_contrasena) as mailbox:
             for msg in mailbox.fetch(Q(seen=False)):
@@ -33,7 +33,10 @@ class Buzon(object):
 
     def clasificar_mensajes(self):
         """ Clasificar mensajes """
-        pass
+        if len(self.mensajes) == 0:
+            raise Exception('AVISO: Sin mensajes.')
+        for mensaje in self.mensajes:
+            mensaje.clasificar_adjuntos()
 
     def responder_mensajes(self):
         """ Responder mensajes """

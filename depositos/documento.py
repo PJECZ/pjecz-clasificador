@@ -6,8 +6,18 @@ from depositos.acuse import Acuse
 class Documento(object):
     """ Documento en el depósito """
 
-    def __init__(self, config, ruta):
+    def __init__(self, config):
         self.config = config
+        self.ruta = None
+        self.directorio = None
+        self.archivo = None
+        self.distrito = None
+        self.autoridad = None
+        self.acuse = None
+        self.identificador = None
+
+    def establecer_ruta(self, ruta):
+        """ Establecer la ruta al documento, entrega el distrito y la autoridad """
         self.ruta = ruta
         self.directorio, self.archivo = os.path.split(ruta)
         if '/' in self.directorio:
@@ -17,15 +27,16 @@ class Documento(object):
         else:
             self.distrito = None
             self.autoridad = None
-        self.acuse = None
-        self.identificador = None
+        return(self.distrito, self.autoridad)
 
-    def definir_identificador(self):
+    def obtener_identificador(self):
+        """ Entrega el identificador del documento """
         cadena = f'{self.distrito}|{self.autoridad}|{self.archivo}'
         self.identificador = hashlib.sha256(self.config.salt.encode() + cadena.encode()).hexdigest()
         return(self.identificador)
 
-    def definir_acuse(self):
+    def obtener_acuse(self):
+        """ Entrega el Acuse del documento """
         if self.identificador is None:
             self.definir_identificador()
         self.acuse = Acuse(self.config)

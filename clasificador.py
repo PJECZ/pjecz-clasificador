@@ -59,9 +59,11 @@ def informar(config):
 def leer(config):
     """ Leer """
     click.echo('Voy a leer...')
-    # Mostrar mensajes en el buzón
     buzon = Buzon(config)
-    buzon.leer_mensajes()
+    mensajes = buzon.leer_mensajes()
+    if len(mensajes) == 0:
+        click.echo('AVISO: No hay mensajes sin leer en el buzón.')
+        sys.exit(0)
     click.echo(repr(buzon))
     for mensaje in buzon.mensajes:
         click.echo(repr(mensaje))
@@ -72,12 +74,17 @@ def leer(config):
 def leer_clasificar(config):
     """ Leer y clasificar """
     click.echo('Voy a leer y clasificar...')
-    # Clasificar adjuntos de los mensajes en el buzón
     buzon = Buzon(config)
-    buzon.leer_mensajes()
-    click.echo(repr(buzon))
+    mensajes = buzon.leer_mensajes()
+    if len(mensajes) == 0:
+        click.echo('AVISO: No hay mensajes sin leer en el buzón.')
+        sys.exit(0)
     for mensaje in buzon.mensajes:
-        click.echo(mensaje.clasificar_adjuntos())
+        if len(mensaje.adjuntos) > 0:
+            documentos = mensaje.clasificar_adjuntos()
+            click.echo('Clasificados {} documentos'.format(len(documentos)))
+        else:
+            click.echo('No hay adjuntos en el mensaje de {}'.format(mensaje.email))
 
 
 @cli.command()
