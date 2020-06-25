@@ -4,6 +4,7 @@ import pickle
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+from tabulate import tabulate
 
 
 # Google Sheets API
@@ -110,5 +111,14 @@ class Clientes(object):
                 }
         return(filtrados)
 
+    def crear_tabla(self):
+        tabla = [['e-mail', 'Mover a']]
+        for email, informacion in self.clientes.items():
+            tabla.append([email, informacion['ruta']])
+        return(tabulate(tabla, headers='firstrow'))
+
     def __repr__(self):
-        return('<Clientes>')
+        if self.alimentado is True:
+            return('<Clientes> Hay {} clientes'.format(len(self.clientes)))
+        else:
+            return('<Clientes>')

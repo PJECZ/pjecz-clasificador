@@ -1,9 +1,8 @@
 import click
 import sys
 from datetime import datetime
-from tabulate import tabulate
-from buzones.buzon import Buzon
 from comunes.config import pass_config
+from buzones.buzon import Buzon
 from clientes.clientes import Clientes
 
 
@@ -39,18 +38,14 @@ def cli(config, fecha, rama):
 def informar(config):
     """ Informar con una línea breve en pantalla """
     click.echo('Voy a informar...')
-    # Mostrar configuración
     click.echo(f'Rama:     {config.rama}')
     click.echo(f'Fecha:    {config.fecha}')
     click.echo(f'e-mail:   {config.email_direccion}')
     click.echo(f'Depósito: {config.deposito_ruta}')
-    # Mostrar clientes
     clientes = Clientes(config)
-    destinatarios = clientes.alimentar()
-    tabla = [['e-mail', 'Mover a']]
-    for email, informacion in destinatarios.items():
-        tabla.append([email, informacion['ruta']])
-    click.echo(tabulate(tabla, headers='firstrow'))
+    clientes.alimentar()
+    click.echo(repr(clientes))
+    click.echo(clientes.crear_tabla())
     sys.exit(0)
 
 
@@ -60,13 +55,9 @@ def leer(config):
     """ Leer """
     click.echo('Voy a leer...')
     buzon = Buzon(config)
-    mensajes = buzon.leer_mensajes()
-    if len(mensajes) == 0:
-        click.echo('AVISO: No hay mensajes sin leer en el buzón.')
-        sys.exit(0)
+    buzon.leer_mensajes()
     click.echo(repr(buzon))
-    for mensaje in buzon.mensajes:
-        click.echo(repr(mensaje))
+    sys.exit(0)
 
 
 @cli.command()
@@ -74,17 +65,13 @@ def leer(config):
 def leer_clasificar(config):
     """ Leer y clasificar """
     click.echo('Voy a leer y clasificar...')
+    clientes = Clientes(config)
+    remitentes = clientes.alimentar()
     buzon = Buzon(config)
-    mensajes = buzon.leer_mensajes()
-    if len(mensajes) == 0:
-        click.echo('AVISO: No hay mensajes sin leer en el buzón.')
-        sys.exit(0)
-    for mensaje in buzon.mensajes:
-        if len(mensaje.adjuntos) > 0:
-            documentos = mensaje.clasificar_adjuntos()
-            click.echo('Clasificados {} documentos'.format(len(documentos)))
-        else:
-            click.echo('No hay adjuntos en el mensaje de {}'.format(mensaje.email))
+    buzon.leer_mensajes()
+    buzon.guardar_adjuntos(remitentes)
+    click.echo(repr(buzon))
+    sys.exit(0)
 
 
 @cli.command()
@@ -92,14 +79,14 @@ def leer_clasificar(config):
 def leer_clasificar_responder(config):
     """ Leer, clasificar y responder """
     click.echo('Voy a leer, clasificar y responder...')
-    # Clasificar adjuntos de los mensajes en el buzón
+    clientes = Clientes(config)
+    remitentes = clientes.alimentar()
     buzon = Buzon(config)
     buzon.leer_mensajes()
+    buzon.guardar_adjuntos(remitentes)
+    buzon.responder_con_acuses()
     click.echo(repr(buzon))
-    for mensaje in buzon.mensajes:
-        click.echo(mensaje.clasificar_adjuntos())
-        if True:
-            click.echo(mensaje.responder_con_acuse())
+    sys.exit(0)
 
 
 cli.add_command(informar)

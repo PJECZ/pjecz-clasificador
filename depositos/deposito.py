@@ -25,14 +25,21 @@ class Deposito(object):
             if not os.path.exists(self.config.deposito_ruta):
                 raise Exception('ERROR: No existe deposito_ruta.')
             for ruta in list(self.rastrear_recursivo(self.config.deposito_ruta)):
-                self.documentos.append(Documento(self.config, ruta))
+                documento = Documento(self.config)
+                documento.establecer_ruta(ruta)
+                self.documentos.append(documento)
             self.cantidad = len(self.documentos)
             self.rastreado = True
         return(self.documentos)
 
-    def guardar_documento(self, adjunto):
-        """ Guardar un documento en el depósito """
-        pass
+    def agregar_documento(self, adjunto):
+        """ Agregar un documento al depósito """
+        documento = Documento(self.config)
+        documento.distrito = ''
+        documento.autoridad = ''
+        documento.archivo = ''
+        self.documentos.append(documento)
+        return(documento)
 
     def __repr__(self):
-        return('<Deposito>')
+        return(f'<Deposito> Ruta: {self.config.deposito_ruta}')

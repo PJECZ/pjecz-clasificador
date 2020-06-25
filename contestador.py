@@ -1,7 +1,6 @@
 import click
 import sys
 from datetime import datetime
-from tabulate import tabulate
 from comunes.config import pass_config
 from clientes.clientes import Clientes
 from depositos.deposito import Deposito
@@ -39,18 +38,14 @@ def cli(config, fecha, rama):
 def informar(config):
     """ Informar con una línea breve en pantalla """
     click.echo('Voy a informar...')
-    # Mostrar información
     click.echo(f'Rama:     {config.rama}')
     click.echo(f'Fecha:    {config.fecha}')
     click.echo(f'e-mail:   {config.email_direccion}')
     click.echo(f'Depósito: {config.deposito_ruta}')
-    # Mostrar clientes
     clientes = Clientes(config)
-    destinatarios = clientes.alimentar()
-    tabla = [['e-mail', 'Mover a']]
-    for email, informacion in destinatarios.items():
-        tabla.append([email, informacion['ruta']])
-    click.echo(tabulate(tabla, headers='firstrow'))
+    clientes.alimentar()
+    click.echo(repr(clientes))
+    click.echo(clientes.crear_tabla())
     sys.exit(0)
 
 
@@ -59,8 +54,6 @@ def informar(config):
 def rastrear(config):
     """ Rastrear documentos en la rama y fecha dada """
     click.echo('Voy a rastrear...')
-    click.echo(f'Fecha: {config.fecha}')
-    # Mostrar los documentos encontrados en el depósito
     deposito = Deposito(config)
     deposito.rastrear()
     if deposito.cantidad == 0:
@@ -77,16 +70,13 @@ def rastrear(config):
 def responder(config, enviar):
     """ Responder con un mensaje vía correo electrónico """
     click.echo('Voy a rastrear y responder...')
-    # Alimentar clientes
     clientes = Clientes(config)
     clientes.alimentar()
-    # Rastrear el depósito
     deposito = Deposito(config)
     deposito.rastrear()
     if deposito.cantidad == 0:
         click.echo(f'AVISO: No se encontraron documentos con fecha {config.fecha}')
         sys.exit(0)
-    # Mostrar en pantalla
     for documento in deposito.documentos:
         destinatarios = clientes.filtrar_con_archivo_ruta(documento.ruta)
         if len(destinatarios) == 0:

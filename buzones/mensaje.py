@@ -1,4 +1,4 @@
-from depositos.deposito import Deposito
+from buzones.acuse import Acuse
 
 
 class Mensaje(object):
@@ -9,24 +9,31 @@ class Mensaje(object):
         self.email = email
         self.asunto = asunto
         self.adjuntos = adjuntos
-        self.documentos = []
+        self.ya_respondido = False
+        self.ya_guardado = False
 
-    def clasificar_adjuntos(self):
-        """ Clasificar los adjuntos en el depósito """
+    def guardar_adjuntos(self, ruta):
+        """ Clasificar los adjuntos en el mensaje """
         if len(self.adjuntos) == 0:
-            return([])  # AVISO: Este mensaje no tiene archivos adjuntos
-        deposito = Deposito(self.config)
+            return([])
+        rutas = []
         for adjunto in self.adjuntos:
-            self.documentos.append(deposito.guardar_documento(adjunto))
-        return(self.documentos)
+            rutas.append(adjunto.establecer_ruta(ruta))
+            adjunto.guardar()
+        return(rutas)
 
-    def responder_con_acuse(self):
-        """ Responder con acuse de recibido """
-        pass
+    def enviar_acuse(self):
+        """ Enviar acuse vía correo electrónico """
+        if self.ya_respondido is False:
+            acuse = Acuse(self.config)
+            acuse.crear_asunto()
+            acuse.crear_contenido('id', 'autoridad', 'distrito', ['archivos'])
+            acuse.enviar(self.email)
+            self.ya_respondido = True
 
     def __repr__(self):
         if len(self.adjuntos) > 0:
-            archivos_nombres = [adj.archivo_nombre for adj in self.adjuntos]
-            return('<Mensaje> De: {}, Asunto: {}, Adjuntos: {}'.format(self.email, self.asunto, ','.join(archivos_nombres)))
+            adjuntos_repr = [repr(adjunto) for adjunto in self.adjuntos]
+            return('<Mensaje> De: {}\n    {}'.format(self.email, '\n    '.join(adjuntos_repr)))
         else:
             return('<Mensaje> De: {}, Asunto: {}, SIN ADJUNTOS.'.format(self.email, self.asunto))

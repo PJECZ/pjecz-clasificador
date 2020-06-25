@@ -15,10 +15,10 @@ class Acuse(object):
             trim_blocks=True,
             lstrip_blocks=True,
         )
-        self.asunto = ''
-        self.contenido = ''
+        self.asunto = None
+        self.contenido = None
 
-    def elaborar_asunto(self):
+    def crear_asunto(self):
         """ Elaborar asunto """
         if self.config.rama == 'Acuerdos':
             self.asunto = 'Acuse de Publicación de Lista de Acuerdo'
@@ -29,10 +29,10 @@ class Acuse(object):
         elif self.config.rama == 'Sentencias':
             self.asunto = 'Acuse de Publicación de Sentencia'
         else:
-            raise Exception('ERROR: No está configurada la rama en elaborar_asunto.')
+            raise Exception('ERROR: No está configurada la rama en crear_asunto.')
         return(self.asunto)
 
-    def elaborar_contenido(self, identificador, autoridad, distrito, archivos):
+    def crear_contenido(self, identificador, autoridad, distrito, archivos):
         """ Elaborar contenido """
         dia, mes, ano = hoy_dia_mes_ano(self.config.fecha)
         if self.config.rama == 'Acuerdos':
@@ -44,7 +44,7 @@ class Acuse(object):
         elif self.config.rama == 'Sentencias':
             plantilla = self.plantillas_env.get_template('sentencias.html.jinja2')
         else:
-            raise Exception('ERROR: No está configurada la rama en elaborar_contenido.')
+            raise Exception('ERROR: No está configurada la rama en crear_contenido.')
         self.contenido = plantilla.render(
             identificador=identificador,
             autoridad=autoridad,
@@ -58,9 +58,9 @@ class Acuse(object):
 
     def enviar(self, destinatario_email):
         """ Enviar mensaje vía correo electrónico """
-        if self.asunto == '':
+        if self.asunto is None:
             raise Exception('ERROR: No se ha elaborado el asunto del mensaje.')
-        if self.contenido == '':
+        if self.contenido is None:
             raise Exception('ERROR: No se ha elaborado el contenido del mensaje.')
         # Armar mensaje
         mensaje = MIMEMultipart()
