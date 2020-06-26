@@ -19,7 +19,7 @@ class Clientes(object):
         self.clientes = {}
         self.alimentado = False
 
-    def alimentar_desde_archivo_csv(self):
+    def cargar_desde_archivo_csv(self):
         """ Cargar los clientes desde el archivo CSV """
         self.clientes = {}
         if os.path.exists(self.config.remitentes_csv_ruta):
@@ -42,7 +42,7 @@ class Clientes(object):
                             }
         return(self.clientes)
 
-    def alimentar_desde_google_sheets_api(self):
+    def cargar_desde_google_sheets_api(self):
         """ Cargar los clientes desde Google Sheets """
         # Google Sheets API
         # https://developers.google.com/sheets/api/quickstart/python
@@ -87,20 +87,20 @@ class Clientes(object):
                         }
         return(self.clientes)
 
-    def alimentar(self):
+    def cargar(self):
         """ Cargar los clientes """
         self.alimentado = True
         if self.config.remitentes_csv_ruta != '':
-            return(self.alimentar_desde_archivo_csv())
+            return(self.cargar_desde_archivo_csv())
         elif self.config.google_sheets_api_spreadsheet_id != '':
-            return(self.alimentar_desde_google_sheets_api())
+            return(self.cargar_desde_google_sheets_api())
         else:
             raise Exception('ERROR: No se pueden cargar los clientes por configuración incompleta.')
 
     def filtrar_con_archivo_ruta(self, archivo_ruta):
         """ Filtrar los clientes donde ruta sea el inicio de archivo_ruta """
         if self.alimentado is False:
-            self.alimentar()
+            self.cargar()
         filtrados = {}
         for email, informacion in self.clientes.items():
             if archivo_ruta.startswith(informacion['ruta']):

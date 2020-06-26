@@ -12,6 +12,7 @@ def mes_en_palabra(mes_numero=None):
 
 
 def hoy_dia_mes_ano(fecha=None):
+    """ Entrega el dia en dos digitos, el mes en palabra y el año en cuatro digitos """
     if fecha is None:
         fecha_date = date.today()
     else:
@@ -20,3 +21,28 @@ def hoy_dia_mes_ano(fecha=None):
     mes = mes_en_palabra(fecha_date.month)
     ano = str(fecha_date.year)
     return(dia, mes, ano)
+
+
+def validar_email(email=''):
+    """ Validar email """
+    if email != '':
+        pass
+    return(email)
+
+
+def validar_fecha(fecha=''):
+    """ Validar una fecha """
+    if fecha != '':
+        try:
+            fecha = datetime.strptime(fecha, '%Y-%m-%d')
+        except ValueError:
+            raise Exception('ERROR: Fecha incorrecta.')
+    return(fecha)
+
+
+def validar_rama(rama=''):
+    """ Validar rama """
+    rama = rama.title()
+    if rama not in ('Acuerdos', 'Edictos', 'Edictosjuzgados', 'Sentencias'):
+        raise Exception('ERROR: Rama no programada.')
+    return(rama)

@@ -2,7 +2,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from jinja2 import Environment, FileSystemLoader
-from funciones.funciones import hoy_dia_mes_ano
+from comunes.funciones import hoy_dia_mes_ano
 
 
 class Acuse(object):
@@ -62,11 +62,17 @@ class Acuse(object):
             raise Exception('ERROR: No se ha elaborado el asunto del mensaje.')
         if self.contenido is None:
             raise Exception('ERROR: No se ha elaborado el contenido del mensaje.')
+        # En modo desarrollo se sustituye la dirección de correo electrónico
+        if self.config.email_desarrollo != '':
+            destinatario_email = self.config.email_desarrollo
         # Armar mensaje
         mensaje = MIMEMultipart()
         mensaje['Subject'] = self.asunto
         mensaje['From'] = self.config.email_direccion
-        mensaje['To'] = destinatario_email
+        if self.config.email_desarrollo != '':
+            mensaje['To'] = self.config.email_desarrollo
+        else:
+            mensaje['To'] = destinatario_email
         mensaje.attach(MIMEText(self.contenido, 'html'))
         # Enviar mensaje
         try:

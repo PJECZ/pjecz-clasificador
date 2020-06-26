@@ -1,51 +1,42 @@
 import click
 import sys
-from datetime import datetime
 from comunes.config import pass_config
+from comunes.funciones import validar_email, validar_fecha, validar_rama
 from clientes.clientes import Clientes
 from depositos.deposito import Deposito
 
 
 @click.group()
-@click.option('--fecha', default='', type=str, help='Fecha AAAA-MM-DD')
+@click.option('--email', default='', type=str, help='Correo electrónico (filtro opcional)')
+@click.option('--fecha', default='', type=str, help='Fecha AAAA-MM-DD (filtro opcional)')
 @click.option('--rama', default='', type=str, help='Acuerdos, Edictos, EdictosJuzgados o Sentencias')
 @pass_config
-def cli(config, fecha, rama):
+def cli(config, email, fecha, rama):
+    """ Validar parámetros y cargar configuraciones """
     click.echo('Hola, ¡soy Clasificador!')
-    # Fecha
-    if fecha != '':
-        try:
-            datetime.strptime(fecha, '%Y-%m-%d')
-            config.fecha = fecha
-        except ValueError:
-            click.echo('ERROR: Fecha incorrecta.')
-            sys.exit(1)
-    # Rama
-    config.rama = rama.title()
-    if config.rama not in ('Acuerdos', 'Edictos', 'Edictosjuzgados', 'Sentencias'):
-        click.echo('ERROR: Rama no programada.')
-        sys.exit(1)
-    # Configuración
     try:
+        config.email = validar_email(email)
+        config.fecha = validar_fecha(fecha)
+        config.rama = validar_rama(rama)
         config.cargar_configuraciones()
-    except Exception:
-        click.echo('ERROR: Falta configuración en settings.ini')
+    except Exception as e:
+        click.echo(str(e))
         sys.exit(1)
 
 
 @cli.command()
 @pass_config
 def informar(config):
-    """ Informar con una línea breve en pantalla """
+    """ Informar mostrando los clientes """
     click.echo('Voy a informar...')
-    click.echo(f'Rama:     {config.rama}')
-    click.echo(f'Fecha:    {config.fecha}')
-    click.echo(f'e-mail:   {config.email_direccion}')
-    click.echo(f'Depósito: {config.deposito_ruta}')
     clientes = Clientes(config)
-    clientes.alimentar()
-    click.echo(repr(clientes))
-    click.echo(clientes.crear_tabla())
+    try:
+        clientes.cargar()
+        click.echo(repr(clientes))
+        click.echo(clientes.crear_tabla())
+    except Exception as e:
+        click.echo(str(e))
+        sys.exit(1)
     sys.exit(0)
 
 
@@ -55,12 +46,12 @@ def rastrear(config):
     """ Rastrear documentos en la rama y fecha dada """
     click.echo('Voy a rastrear...')
     deposito = Deposito(config)
-    deposito.rastrear()
-    if deposito.cantidad == 0:
-        click.echo(f'AVISO: No se encontraron documentos con fecha {config.fecha}')
-    else:
-        for documento in deposito.documentos:
-            click.echo(documento.ruta)
+    try:
+        deposito.rastrear()
+        click.echo(repr(deposito))
+    except Exception as e:
+        click.echo(str(e))
+        sys.exit(1)
     sys.exit(0)
 
 
@@ -71,7 +62,7 @@ def responder(config, enviar):
     """ Responder con un mensaje vía correo electrónico """
     click.echo('Voy a rastrear y responder...')
     clientes = Clientes(config)
-    clientes.alimentar()
+    clientes.cargar()
     deposito = Deposito(config)
     deposito.rastrear()
     if deposito.cantidad == 0:

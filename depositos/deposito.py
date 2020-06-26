@@ -42,4 +42,11 @@ class Deposito(object):
         return(documento)
 
     def __repr__(self):
+        """
+        if deposito.cantidad == 0:
+            click.echo(f'AVISO: No se encontraron documentos con fecha {config.fecha}')
+        else:
+            for documento in deposito.documentos:
+                click.echo(documento.ruta)
+        """
         return(f'<Deposito> Ruta: {self.config.deposito_ruta}')

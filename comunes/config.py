@@ -6,8 +6,10 @@ from datetime import date
 class Config(object):
 
     def __init__(self):
+        self.email = ''
         self.fecha = str(date.today())
         self.rama = ''
+        self.email_desarrollo = ''
         self.salt = ''
         self.servidor_imap = ''
         self.servidor_smtp = ''
@@ -30,6 +32,8 @@ class Config(object):
         settings = configparser.ConfigParser()
         settings.read('settings.ini')
         try:
+            if 'email_desarrollo' in settings['Global']:
+                self.email_desarrollo = settings['Global']['email_desarrollo']
             self.salt = settings['Global']['salt']
             self.servidor_imap = settings['Global']['servidor_imap']
             self.servidor_smtp = settings['Global']['servidor_smtp']

@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from funciones.funciones import mes_en_palabra, hoy_dia_mes_ano
+from comunes.funciones import mes_en_palabra, hoy_dia_mes_ano
 
 
 class Adjunto(object):
@@ -31,24 +31,22 @@ class Adjunto(object):
 
     def guardar(self):
         """ Guardar el archivo adjunto, entrega verdadero de tener éxito """
-        if self.ya_guardado:
-            return()
-        if self.ruta is None:
-            raise Exception('ERROR: No hay ruta definida para guardar el adjunto.')
-        directorio_completo = self.config.deposito_ruta + '/' + self.directorio
-        try:
-            if not os.path.exists(directorio_completo):
-                os.makedirs(directorio_completo)
-        except Exception:
-            raise Exception(f'ERROR: Al tratar de crear el directorio {directorio_completo}')
-        self.ruta_completa = os.path.join(directorio_completo, self.archivo)
-        try:
-            with open(self.ruta_completa, 'wb') as puntero:
-                puntero.write(self.contenido_binario)
-        except Exception:
-            raise Exception(f'ERROR: Al tratar de guardar {self.ruta_completa}')
-        self.ya_guardado = True
-        return(self.ya_guardado)
+        if self.ya_guardado is False:
+            if self.ruta is None:
+                raise Exception('ERROR: No hay ruta definida para guardar el adjunto.')
+            directorio_completo = self.config.deposito_ruta + '/' + self.directorio
+            try:
+                if not os.path.exists(directorio_completo):
+                    os.makedirs(directorio_completo)
+            except Exception:
+                raise Exception(f'ERROR: Al tratar de crear el directorio {directorio_completo}')
+            self.ruta_completa = os.path.join(directorio_completo, self.archivo)
+            try:
+                with open(self.ruta_completa, 'wb') as puntero:
+                    puntero.write(self.contenido_binario)
+            except Exception:
+                raise Exception(f'ERROR: Al tratar de guardar {self.ruta_completa}')
+            self.ya_guardado = True
 
     def __repr__(self):
         if self.ya_guardado:

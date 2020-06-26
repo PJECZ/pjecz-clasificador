@@ -11,63 +11,68 @@ class Buzon(object):
         self.mensajes = []
         self.mensajes_descartados = []
         self.ya_leidos = False
-        self.ya_clasificados = False
+        self.ya_guardados = False
+        self.ya_respondidos = False
 
     def leer_mensajes(self):
         """ Leer los mensajes en el buzón, entrega listado de Mensajes """
-        if self.ya_leidos:
-            return(self.mensajes)
-        with MailBox(self.config.servidor_imap).login(self.config.email_direccion, self.config.email_contrasena) as mailbox:
-            for msg in mailbox.fetch(Q(seen=False)):
-                adjuntos = []
-                for adj in msg.attachments:
-                    adjuntos.append(Adjunto(
+        if self.ya_leidos is False:
+            with MailBox(self.config.servidor_imap).login(self.config.email_direccion, self.config.email_contrasena) as mailbox:
+                for msg in mailbox.fetch(Q(seen=False)):
+                    adjuntos = []
+                    for adj in msg.attachments:
+                        adjuntos.append(Adjunto(
+                            config=self.config,
+                            archivo=adj.filename,
+                            contenido_tipo=adj.content_type,
+                            contenido_binario=adj.payload,
+                        ))
+                    self.mensajes.append(Mensaje(
                         config=self.config,
-                        archivo=adj.filename,
-                        contenido_tipo=adj.content_type,
-                        contenido_binario=adj.payload,
+                        email=msg.from_,
+                        asunto=msg.subject,
+                        adjuntos=adjuntos,
                     ))
-                self.mensajes.append(Mensaje(
-                    config=self.config,
-                    email=msg.from_,
-                    asunto=msg.subject,
-                    adjuntos=adjuntos,
-                ))
-        self.ya_leidos = True
+            self.ya_leidos = True
         return(self.mensajes)
 
     def guardar_adjuntos(self, remitentes):
-        """ Guardar los adjuntos en los mensajes """
-        if self.ya_clasificados is True:
-            return(self.mensajes)
-        mensajes_clasificados = []
-        for mensaje in self.mensajes:
-            if mensaje.email in remitentes:
-                remitente = remitentes[mensaje.email]
-                mensaje.guardar_adjuntos(remitente['ruta'])
-                mensajes_clasificados.append(mensaje)
-            else:
-                self.mensajes_descartados.append(mensaje)
-        self.mensajes = mensajes_clasificados
-        self.ya_clasificados = True
+        """ Guardar los adjuntos en los mensajes, entrega listado de Mensajes """
+        if self.ya_leidos is False:
+            self.leer_mensajes()
+        if self.ya_guardados is False:
+            mensajes_clasificados = []
+            for mensaje in self.mensajes:
+                if mensaje.email in remitentes:
+                    remitente = remitentes[mensaje.email]
+                    mensaje.guardar_adjuntos(remitente['ruta'])
+                    mensajes_clasificados.append(mensaje)
+                else:
+                    self.mensajes_descartados.append(mensaje)
+            self.mensajes = mensajes_clasificados
+            self.ya_guardados = True
         return(self.mensajes)
 
     def responder_con_acuses(self):
         """ Responder con acuses los mensajes """
-        for mensaje in self.mensajes:
-            if mensaje.ya_respondido is False:
-                mensaje.enviar_acuse()
+        if self.ya_leidos is False or self.ya_guardados is False:
+            raise Exception('ERROR: No puede responder con acuses porque no ha leído y guardado.')
+        if self.ya_respondidos is False:
+            if self.ya_leidos is False or self.ya_guardados is False:
+                raise Exception('ERROR: No han sido leíos y guardados los mensajes.')
+            for mensaje in self.mensajes:
+                if mensaje.ya_respondido is False:
+                    mensaje.enviar_acuse()
+            self.ya_respondidos = True
 
     def __repr__(self):
-        if self.ya_clasificados:
-            mensajes_repr = [repr(mensaje) for mensaje in self.mensajes]
-            return('<Buzon> Clasificados {}, descartados {}\n  {}'.format(
-                len(self.mensajes),
-                len(self.mensajes_descartados),
-                '\n  '.join(mensajes_repr),
-            ))
-        elif self.ya_leidos:
-            mensajes_repr = [repr(mensaje) for mensaje in self.mensajes]
-            return('<Buzon> Leídos {}\n  {}'.format(len(self.mensajes), '\n  '.join(mensajes_repr)))
+        if len(self.mensajes) > 0:
+            mensajes_repr = '\n  '.join([repr(mensaje) for mensaje in self.mensajes])
+            if self.ya_respondidos:
+                return('<Buzon> Respondidos {}, descartados {}\n  {}'.format(len(self.mensajes), len(self.mensajes_descartados), mensajes_repr))
+            elif self.ya_guardados:
+                return('<Buzon> Guardados {}, descartados {}\n  {}'.format(len(self.mensajes), len(self.mensajes_descartados), mensajes_repr))
+            elif self.ya_leidos:
+                return('<Buzon> Leídos {}\n  {}'.format(len(self.mensajes), mensajes_repr))
         else:
-            return('<Buzon>')
+            return('<Buzon> SIN MENSAJES')
