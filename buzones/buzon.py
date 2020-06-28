@@ -53,16 +53,17 @@ class Buzon(object):
             self.ya_guardados = True
         return(self.mensajes)
 
-    def responder_con_acuses(self):
+    def responder_con_acuses(self, remitentes):
         """ Responder con acuses los mensajes """
-        if self.ya_leidos is False or self.ya_guardados is False:
-            raise Exception('ERROR: No puede responder con acuses porque no ha leído y guardado.')
+        if self.ya_leidos is False:
+            raise Exception('ERROR: No puede responder con acuses porque no ha leído los mensajes.')
+        if self.ya_guardados is False:
+            raise Exception('ERROR: No puede responder con acuses porque no ha guardado los adjuntos.')
         if self.ya_respondidos is False:
-            if self.ya_leidos is False or self.ya_guardados is False:
-                raise Exception('ERROR: No han sido leíos y guardados los mensajes.')
             for mensaje in self.mensajes:
-                if mensaje.ya_respondido is False:
-                    mensaje.enviar_acuse()
+                if mensaje.ya_respondido is False and mensaje.email in remitentes:
+                    destinatario = remitentes[mensaje.email]
+                    mensaje.enviar_acuse(destinatario)
             self.ya_respondidos = True
 
     def __repr__(self):

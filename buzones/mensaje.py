@@ -22,13 +22,18 @@ class Mensaje(object):
                     adjunto.guardar()
             self.ya_guardado = True
 
-    def enviar_acuse(self):
+    def enviar_acuse(self, destinatario):
         """ Enviar acuse vía correo electrónico """
         if self.ya_guardado is False:
             raise Exception('ERROR: No puede enviar acuse porque no ha guardado los adjuntos.')
         if self.ya_respondido is False:
             self.acuse.crear_asunto()
-            self.acuse.crear_contenido('id', 'autoridad', 'distrito', ['archivos'])
+            self.acuse.crear_contenido(
+                identificador='id',
+                autoridad=destinatario['autoridad'],
+                distrito=destinatario['distrito'],
+                archivos=['archivos'],
+            )
             self.acuse.enviar(self.email)
             self.ya_respondido = True
 

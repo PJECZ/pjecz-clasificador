@@ -84,7 +84,7 @@ def leer_clasificar_responder(config):
         remitentes = clientes.cargar()
         buzon.leer_mensajes()
         buzon.guardar_adjuntos(remitentes)
-        buzon.responder_con_acuses()
+        buzon.responder_con_acuses(remitentes)
         click.echo(repr(buzon))
     except Exception as e:
         click.echo(str(e))
