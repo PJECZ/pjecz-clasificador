@@ -1,3 +1,4 @@
+import hashlib
 from buzones.acuse import Acuse
 
 
@@ -22,6 +23,13 @@ class Mensaje(object):
                     adjunto.guardar()
             self.ya_guardado = True
 
+    def crear_identificador(self):
+        """ Entrega el identificador del documento """
+        adjuntos_archivos_lista = [adjunto.archivo for adjunto in self.adjuntos]
+        cadena = self.email + '|' + '|'.join(adjuntos_archivos_lista)
+        identificador = hashlib.sha256(self.config.salt.encode() + cadena.encode()).hexdigest()
+        return(identificador)
+
     def enviar_acuse(self, destinatario):
         """ Enviar acuse vía correo electrónico """
         if self.ya_guardado is False:
@@ -29,7 +37,7 @@ class Mensaje(object):
         if self.ya_respondido is False:
             self.acuse.crear_asunto()
             self.acuse.crear_contenido(
-                identificador='id',
+                identificador=self.crear_identificador(),
                 autoridad=destinatario['autoridad'],
                 distrito=destinatario['distrito'],
                 archivos=['archivos'],
