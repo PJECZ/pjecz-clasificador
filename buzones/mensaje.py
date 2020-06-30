@@ -1,5 +1,14 @@
+import logging
 import hashlib
 from buzones.acuse import Acuse
+
+
+bitacora = logging.getLogger(__name__)
+bitacora.setLevel(logging.INFO)
+formato = logging.Formatter('%(asctime)s:%(levelname)s:%(name)s:%(message)s')
+empunadura = logging.FileHandler('buzones.log')
+empunadura.setFormatter(formato)
+bitacora.addHandler(empunadura)
 
 
 class Mensaje(object):
@@ -35,15 +44,20 @@ class Mensaje(object):
         if self.ya_guardado is False:
             raise Exception('ERROR: No puede enviar acuse porque no ha guardado los adjuntos.')
         if self.ya_respondido is False:
-            self.acuse.crear_asunto()
-            self.acuse.crear_contenido(
-                identificador=self.crear_identificador(),
-                autoridad=destinatario['autoridad'],
-                distrito=destinatario['distrito'],
-                archivos=[adjunto.archivo for adjunto in self.adjuntos],
-            )
-            self.acuse.enviar(self.email)
-            self.ya_respondido = True
+            if len(self.adjuntos) > 0:
+                self.acuse.crear_asunto()
+                self.acuse.crear_contenido(
+                    identificador=self.crear_identificador(),
+                    autoridad=destinatario['autoridad'],
+                    distrito=destinatario['distrito'],
+                    archivos=[adjunto.archivo for adjunto in self.adjuntos],
+                )
+                self.acuse.enviar(self.email)
+                self.ya_respondido = True
+                adjuntos_texto = ', '.join([adjunto.archivo for adjunto in self.adjuntos])
+                bitacora.info('[{}] Acuse enviado a {} por {}'.format(self.config.rama, self.email, adjuntos_texto))
+            else:
+                bitacora.warning('[{}] No tiene adjuntos el mensaje de {}'.format(self.config.rama, self.email))
 
     def __repr__(self):
         if len(self.adjuntos) > 0:

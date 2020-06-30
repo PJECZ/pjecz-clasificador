@@ -1,6 +1,15 @@
+import logging
 import os
 from datetime import datetime
 from comunes.funciones import mes_en_palabra, hoy_dia_mes_ano
+
+
+bitacora = logging.getLogger(__name__)
+bitacora.setLevel(logging.INFO)
+formato = logging.Formatter('%(asctime)s:%(levelname)s:%(name)s:%(message)s')
+empunadura = logging.FileHandler('buzones.log')
+empunadura.setFormatter(formato)
+bitacora.addHandler(empunadura)
 
 
 class Adjunto(object):
@@ -47,6 +56,7 @@ class Adjunto(object):
             except Exception:
                 raise Exception(f'ERROR: Al tratar de guardar {self.ruta_completa}')
             self.ya_guardado = True
+            bitacora.info('[{}] Guardado en {}'.format(self.config.rama, self.ruta))
 
     def __repr__(self):
         if self.ya_guardado:

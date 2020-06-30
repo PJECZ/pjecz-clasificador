@@ -1,5 +1,6 @@
 *.csv
 *.egg-info
+*.log
 *.pyc
 __pycache__
 .directory

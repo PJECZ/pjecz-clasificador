@@ -1,6 +1,15 @@
+import logging
 from imap_tools import MailBox, Q
 from buzones.mensaje import Mensaje
 from buzones.adjunto import Adjunto
+
+
+bitacora = logging.getLogger(__name__)
+bitacora.setLevel(logging.INFO)
+formato = logging.Formatter('%(asctime)s:%(levelname)s:%(name)s:%(message)s')
+empunadura = logging.FileHandler('buzones.log')
+empunadura.setFormatter(formato)
+bitacora.addHandler(empunadura)
 
 
 class Buzon(object):
@@ -34,6 +43,7 @@ class Buzon(object):
                         adjuntos=adjuntos,
                     ))
             self.ya_leidos = True
+            bitacora.info('[{}] Leídos {} mensajes'.format(self.config.rama, len(self.mensajes)))
         return(self.mensajes)
 
     def guardar_adjuntos(self, remitentes):
@@ -47,8 +57,10 @@ class Buzon(object):
                     remitente = remitentes[mensaje.email]
                     mensaje.guardar_adjuntos(remitente['ruta'])
                     mensajes_clasificados.append(mensaje)
+                    bitacora.info('[{}] Mensaje reconocido de {}'.format(self.config.rama, mensaje.email))
                 else:
                     self.mensajes_descartados.append(mensaje)
+                    bitacora.warning('[{}] Mensaje descartado de {}'.format(self.config.rama, mensaje.email))
             self.mensajes = mensajes_clasificados
             self.ya_guardados = True
         return(self.mensajes)
@@ -60,9 +72,12 @@ class Buzon(object):
         if self.ya_guardados is False:
             raise Exception('ERROR: No puede responder con acuses porque no ha guardado los adjuntos.')
         if self.ya_respondidos is False:
+            contador = 0
             for mensaje in self.mensajes:
                 if mensaje.ya_respondido is False and mensaje.email in remitentes:
                     mensaje.enviar_acuse(remitentes[mensaje.email])
+                    contador += 1
+            bitacora.info('[{}] Respondidos {} mensajes'.format(self.config.rama, contador))
             self.ya_respondidos = True
 
     def __repr__(self):
