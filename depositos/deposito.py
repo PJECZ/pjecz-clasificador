@@ -16,7 +16,7 @@ class Deposito(object):
         for item in os.scandir(ruta):
             if item.is_dir(follow_symlinks=False):
                 yield from self.rastrear_recursivo(item.path)
-            elif (item.name.endswith('.pdf') or item.name.endswith('.PDF')) and item.name.startswith(self.config.fecha):
+            elif (item.name.endswith('.pdf') or item.name.endswith('.PDF')):
                 yield item.path[len(self.config.deposito_ruta) + 1:]
 
     def rastrear(self):
@@ -27,6 +27,12 @@ class Deposito(object):
             for ruta in list(self.rastrear_recursivo(self.config.deposito_ruta)):
                 documento = Documento(self.config)
                 documento.establecer_ruta(ruta)
+                if self.config.fecha != '' and documento.fecha != self.config.fecha:
+                    continue
+                if self.config.distrito != '' and documento.distrito != self.config.distrito:
+                    continue
+                if self.config.autoridad != '' and documento.autoridad != self.config.autoridad:
+                    continue
                 self.documentos.append(documento)
             self.ya_rastreado = True
         return(self.documentos)
@@ -37,12 +43,12 @@ class Deposito(object):
             self.rastrear()
         if self.ya_respondidos is False:
             for documento in self.documentos:
-                filtrado = destinatarios.filtrar_con_archivo_ruta(documento.ruta)
-                if filtrado > 0:
-                    for email, informacion in filtrado.items():
+                destinatarios_dict = destinatarios.filtrar_con_archivo_ruta(documento.ruta)
+                if len(destinatarios_dict) > 0:
+                    for email, informacion in destinatarios_dict.items():
                         documento.enviar_acuse(email)
                 else:
-                    pass  # No hay destinatarios
+                    pass  # No hay destinatarios para la ruta
             self.ya_respondidos = True
 
     def __repr__(self):
@@ -53,6 +59,6 @@ class Deposito(object):
             elif self.ya_rastreado:
                 return('<Deposito> Rastreados {}\n  {}'.format(len(self.documentos), documentos_repr))
             else:
-                return('<Deposito>')
+                return('<Deposito> Cantidad de documentos {}'.format(len(self.documentos)))
         else:
-            return('<Deposito> SIN DOCUMENTOS en rama {} fecha {} email {}'.format(self.config.rama, self.config.fecha, self.config.email))
+            return('<Deposito>')

@@ -1,5 +1,6 @@
 import hashlib
 import os
+from comunes.funciones import validar_fecha
 from depositos.acuse import Acuse
 
 
@@ -13,6 +14,7 @@ class Documento(object):
         self.archivo = None
         self.distrito = None
         self.autoridad = None
+        self.fecha = None
         self.identificador = None
         self.acuses = []
         self.ya_enviado = False
@@ -28,6 +30,10 @@ class Documento(object):
         else:
             self.distrito = None
             self.autoridad = None
+        try:
+            self.fecha = validar_fecha(self.archivo[:10])
+        except Exception:
+            self.fecha = None
         return(self.distrito, self.autoridad)
 
     def crear_identificador(self):
@@ -61,7 +67,7 @@ class Documento(object):
 
     def __repr__(self):
         if self.ya_enviado:
-            acuses_repr = '\n    '.join([acuse for acuse in self.acuses])
+            acuses_repr = '\n    '.join([repr(acuse) for acuse in self.acuses])
             return('<Documento> Enviado Ruta: {}\n    {}'.format(self.ruta, acuses_repr))
         elif self.ruta is None:
             return('<Documento>')

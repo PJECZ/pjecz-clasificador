@@ -13,7 +13,7 @@ def mes_en_palabra(mes_numero=None):
 
 def hoy_dia_mes_ano(fecha=None):
     """ Entrega el dia en dos digitos, el mes en palabra y el año en cuatro digitos """
-    if fecha is None:
+    if fecha is None or fecha == '':
         fecha_date = date.today()
     else:
         fecha_date = datetime.strptime(fecha, '%Y-%m-%d')
@@ -32,7 +32,7 @@ def validar_fecha(fecha=''):
     """ Validar una fecha """
     if fecha != '':
         try:
-            fecha = datetime.strptime(fecha, '%Y-%m-%d')
+            datetime.strptime(fecha, '%Y-%m-%d')
         except ValueError:
             raise Exception('ERROR: Fecha incorrecta.')
     return(str(fecha))

@@ -23,7 +23,7 @@ class Acuse(object):
     def crear_asunto(self):
         """ Elaborar asunto """
         if self.config.depositos_acuse_asunto != '':
-            self.asunto = self.config.buzones_acuse_asunto
+            self.asunto = self.config.depositos_acuse_asunto
             return(self.asunto)
         else:
             raise Exception('ERROR: Falta depositos_acuse_asunto en settings.ini')

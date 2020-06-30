@@ -91,11 +91,14 @@ class Clientes(object):
         """ Cargar los clientes """
         self.alimentado = True
         if self.config.remitentes_csv_ruta != '':
-            return(self.cargar_desde_archivo_csv())
+            self.cargar_desde_archivo_csv()
         elif self.config.google_sheets_api_spreadsheet_id != '':
-            return(self.cargar_desde_google_sheets_api())
+            self.cargar_desde_google_sheets_api()
         else:
-            raise Exception('ERROR: No se pueden cargar los clientes por configuración incompleta.')
+            raise Exception('ERROR: No se pueden cargar los clientes porque la configuración está incompleta.')
+        if len(self.clientes) == 0:
+            raise Exception('AVISO: No se cargó ningún cliente.')
+        return(self.clientes)
 
     def filtrar_con_archivo_ruta(self, archivo_ruta):
         """ Filtrar los clientes donde ruta sea el inicio de archivo_ruta """

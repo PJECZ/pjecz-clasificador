@@ -59,15 +59,15 @@ def rastrear(config):
 
 @cli.command()
 @pass_config
-def responder(config):
+def rastrear_responder(config):
     """ Rastrear documentos y responder """
     click.echo('Voy a rastrear y responder...')
     clientes = Clientes(config)
     deposito = Deposito(config)
     try:
-        destinatarios = clientes.cargar()
+        clientes.cargar()
         deposito.rastrear()
-        deposito.responder_con_acuses(destinatarios)
+        deposito.responder_con_acuses(clientes)
         click.echo(repr(deposito))
     except Exception as e:
         click.echo(str(e))
@@ -77,4 +77,4 @@ def responder(config):
 
 cli.add_command(informar)
 cli.add_command(rastrear)
-cli.add_command(responder)
+cli.add_command(rastrear_responder)
