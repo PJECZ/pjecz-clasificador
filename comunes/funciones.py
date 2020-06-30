@@ -25,8 +25,6 @@ def hoy_dia_mes_ano(fecha=None):
 
 def validar_email(email=''):
     """ Validar email """
-    if email != '':
-        pass
     return(email)
 
 
@@ -37,12 +35,9 @@ def validar_fecha(fecha=''):
             fecha = datetime.strptime(fecha, '%Y-%m-%d')
         except ValueError:
             raise Exception('ERROR: Fecha incorrecta.')
-    return(fecha)
+    return(str(fecha))
 
 
 def validar_rama(rama=''):
     """ Validar rama """
-    rama = rama.title()
-    if rama not in ('Acuerdos', 'Edictos', 'Edictosjuzgados', 'Sentencias'):
-        raise Exception('ERROR: Rama no programada.')
-    return(rama)
+    return(rama.lower())

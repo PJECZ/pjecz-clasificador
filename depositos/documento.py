@@ -14,7 +14,8 @@ class Documento(object):
         self.distrito = None
         self.autoridad = None
         self.identificador = None
-        self.acuse = None
+        self.acuses = []
+        self.ya_enviado = False
 
     def establecer_ruta(self, ruta):
         """ Establecer la ruta al documento, entrega el distrito y la autoridad """
@@ -31,31 +32,38 @@ class Documento(object):
 
     def crear_identificador(self):
         """ Entrega el identificador del documento """
-        if self.distrito is None or self.autoridad is None or self.archivo is None:
-            raise Exception('ERROR: Falta el distrito, la autoridad o el archivo.')
+        if self.ruta is None or self.directorio is None or self.archivo is None:
+            raise Exception('ERROR: Falta definir la ruta, directorio y/o archivo.')
+        if self.distrito is None or self.autoridad is None:
+            raise Exception('ERROR: Falta definir el distrito y/o autoridad.')
         cadena = f'{self.distrito}|{self.autoridad}|{self.archivo}'
         self.identificador = hashlib.sha256(self.config.salt.encode() + cadena.encode()).hexdigest()
         return(self.identificador)
 
-    def crear_acuse(self):
-        """ Entrega el Acuse del documento """
-        if self.distrito is None or self.autoridad is None or self.archivo is None:
-            raise Exception('ERROR: Falta el distrito, la autoridad o el archivo.')
-        if self.identificador is None:
-            self.crear_identificador()
-        self.acuse = Acuse(self.config)
-        self.acuse.crear_asunto()
-        self.acuse.crear_contenido(
-            identificador=self.identificador,
-            distrito=self.distrito,
-            autoridad=self.autoridad,
-            archivos=[self.archivo],
-        )
-        return(self.acuse)
-
-    def enviar_acuse(self, destinatario_email):
+    def enviar_acuse(self, email):
         """ Enviar acuse vía correo electrónico """
-        self.acuse.enviar(destinatario_email)
+        if self.ruta is None or self.directorio is None or self.archivo is None:
+            raise Exception('ERROR: Falta definir la ruta, directorio y/o archivo.')
+        if self.distrito is None or self.autoridad is None:
+            raise Exception('ERROR: Falta definir el distrito y/o autoridad.')
+        if self.ya_enviado is False:
+            acuse = Acuse(self.config)
+            acuse.crear_asunto()
+            acuse.crear_contenido(
+                identificador=self.crear_identificador(),
+                distrito=self.distrito,
+                autoridad=self.autoridad,
+                archivos=[self.archivo],
+            )
+            acuse.enviar(email)
+            self.acuses.append(acuse)
+            self.ya_enviado = True
 
     def __repr__(self):
-        return(f'<Documento> Ruta: {self.ruta}')
+        if self.ya_enviado:
+            acuses_repr = '\n    '.join([acuse for acuse in self.acuses])
+            return('<Documento> Enviado Ruta: {}\n    {}'.format(self.ruta, acuses_repr))
+        elif self.ruta is None:
+            return('<Documento>')
+        else:
+            return('<Documento> Ruta: {}'.format(self.ruta))

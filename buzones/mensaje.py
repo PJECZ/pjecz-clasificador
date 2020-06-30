@@ -40,7 +40,7 @@ class Mensaje(object):
                 identificador=self.crear_identificador(),
                 autoridad=destinatario['autoridad'],
                 distrito=destinatario['distrito'],
-                archivos=['archivos'],
+                archivos=[adjunto.archivo for adjunto in self.adjuntos],
             )
             self.acuse.enviar(self.email)
             self.ya_respondido = True
@@ -49,7 +49,7 @@ class Mensaje(object):
         if len(self.adjuntos) > 0:
             adjuntos_repr = '\n    '.join([repr(adjunto) for adjunto in self.adjuntos])
             if self.ya_respondido:
-                return('<Mensaje> Respondido de {}\n    {}\n  {}'.format(self.email, adjuntos_repr, repr(self.acuse)))
+                return('<Mensaje> Respondido de {}\n    {}\n    {}'.format(self.email, adjuntos_repr, repr(self.acuse)))
             elif self.ya_guardado:
                 return('<Mensaje> Guardado de {}\n    {}'.format(self.email, adjuntos_repr))
             elif len(self.adjuntos) > 0:

@@ -7,17 +7,19 @@ from depositos.deposito import Deposito
 
 
 @click.group()
-@click.option('--email', default='', type=str, help='Correo electrónico (filtro opcional)')
-@click.option('--fecha', default='', type=str, help='Fecha AAAA-MM-DD (filtro opcional)')
 @click.option('--rama', default='', type=str, help='Acuerdos, Edictos, EdictosJuzgados o Sentencias')
+@click.option('--distrito', default='', type=str, help='Filtro por Distrito')
+@click.option('--autoridad', default='', type=str, help='Filtro por Autoridad')
+@click.option('--fecha', default='', type=str, help='Filtro por Fecha AAAA-MM-DD')
 @pass_config
-def cli(config, email, fecha, rama):
-    """ Validar parámetros y cargar configuraciones """
+def cli(config, rama, distrito, autoridad, fecha):
+    """ Rastrea los depoósitos de archivos y envía acuses de los mismos """
     click.echo('Hola, ¡soy Clasificador!')
     try:
-        config.email = validar_email(email)
-        config.fecha = validar_fecha(fecha)
         config.rama = validar_rama(rama)
+        config.distrito = validar_email(distrito)
+        config.autoridad = validar_email(autoridad)
+        config.fecha = validar_fecha(fecha)
         config.cargar_configuraciones()
     except Exception as e:
         click.echo(str(e))
@@ -43,7 +45,7 @@ def informar(config):
 @cli.command()
 @pass_config
 def rastrear(config):
-    """ Rastrear documentos en la rama y fecha dada """
+    """ Rastrear documentos """
     click.echo('Voy a rastrear...')
     deposito = Deposito(config)
     try:
@@ -56,32 +58,20 @@ def rastrear(config):
 
 
 @cli.command()
-@click.option('--enviar', is_flag=True, help='Enviar mensajes')
 @pass_config
-def responder(config, enviar):
-    """ Responder con un mensaje vía correo electrónico """
+def responder(config):
+    """ Rastrear documentos y responder """
     click.echo('Voy a rastrear y responder...')
     clientes = Clientes(config)
-    clientes.cargar()
     deposito = Deposito(config)
-    deposito.rastrear()
-    if deposito.cantidad == 0:
-        click.echo(f'AVISO: No se encontraron documentos con fecha {config.fecha}')
-        sys.exit(0)
-    for documento in deposito.documentos:
-        destinatarios = clientes.filtrar_con_archivo_ruta(documento.ruta)
-        if len(destinatarios) == 0:
-            click.echo(f'AVISO: No hay destinatarios para {documento.ruta}')
-        else:
-            for email, informacion in destinatarios.items():
-                documento.definir_acuse()
-                if enviar:
-                    documento.enviar_acuse(email)
-                else:
-                    click.echo(f"- SIMULO envar mensaje a {email} sobre {documento.archivo}")
-                    click.echo(documento.acuse.asunto)
-                    click.echo(documento.acuse.contenido)
-                    click.echo()
+    try:
+        destinatarios = clientes.cargar()
+        deposito.rastrear()
+        deposito.responder_con_acuses(destinatarios)
+        click.echo(repr(deposito))
+    except Exception as e:
+        click.echo(str(e))
+        sys.exit(1)
     sys.exit(0)
 
 

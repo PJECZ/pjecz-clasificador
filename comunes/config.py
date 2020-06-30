@@ -6,14 +6,19 @@ from datetime import date
 class Config(object):
 
     def __init__(self):
-        self.email = ''
-        self.fecha = str(date.today())
         self.rama = ''
+        self.distrito = ''  # Filtro
+        self.autoridad = ''  # Filtro
+        self.fecha = str(date.today())  # Filtro
         self.email_desarrollo = ''
         self.salt = ''
         self.servidor_imap = ''
         self.servidor_smtp = ''
+        self.buzones_acuse_asunto = ''
+        self.buzones_acuse_contenido = ''
         self.deposito_ruta = ''
+        self.depositos_acuse_asunto = ''
+        self.depositos_acuse_contenido = ''
         self.email_direccion = ''
         self.email_contrasena = ''
         self.google_sheets_api_spreadsheet_id = ''
@@ -32,12 +37,20 @@ class Config(object):
         settings = configparser.ConfigParser()
         settings.read('settings.ini')
         try:
-            if 'email_desarrollo' in settings['Global']:
-                self.email_desarrollo = settings['Global']['email_desarrollo']
-            self.salt = settings['Global']['salt']
-            self.servidor_imap = settings['Global']['servidor_imap']
-            self.servidor_smtp = settings['Global']['servidor_smtp']
+            if 'email_desarrollo' in settings['global']:
+                self.email_desarrollo = settings['global']['email_desarrollo']
+            self.salt = settings['global']['salt']
+            self.servidor_imap = settings['global']['servidor_imap']
+            self.servidor_smtp = settings['global']['servidor_smtp']
+            if 'buzones_acuse_asunto' in settings[self.rama]:
+                self.buzones_acuse_asunto = settings[self.rama]['buzones_acuse_asunto']
+            if 'buzones_acuse_contenido' in settings[self.rama]:
+                self.buzones_acuse_contenido = settings[self.rama]['buzones_acuse_contenido']
             self.deposito_ruta = settings[self.rama]['deposito_ruta']
+            if 'depositos_acuse_asunto' in settings[self.rama]:
+                self.depositos_acuse_asunto = settings[self.rama]['depositos_acuse_asunto']
+            if 'depositos_acuse_contenido' in settings[self.rama]:
+                self.depositos_acuse_contenido = settings[self.rama]['depositos_acuse_contenido']
             self.email_direccion = settings[self.rama]['email_direccion']
             self.email_contrasena = settings[self.rama]['email_contrasena']
             if 'google_sheets_api_spreadsheet_id' in settings[self.rama]:

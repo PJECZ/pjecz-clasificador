@@ -7,17 +7,19 @@ from clientes.clientes import Clientes
 
 
 @click.group()
-@click.option('--email', default='', type=str, help='Correo electrónico (filtro opcional)')
-@click.option('--fecha', default='', type=str, help='Fecha AAAA-MM-DD (filtro opcional)')
 @click.option('--rama', default='', type=str, help='Acuerdos, Edictos, EdictosJuzgados o Sentencias')
+@click.option('--distrito', default='', type=str, help='Filtro por Distrito')
+@click.option('--autoridad', default='', type=str, help='Filtro por Autoridad')
+@click.option('--fecha', default='', type=str, help='Filtro por Fecha AAAA-MM-DD')
 @pass_config
-def cli(config, email, fecha, rama):
-    """ Validar parámetros y cargar configuraciones """
+def cli(config, rama, distrito, autoridad, fecha):
+    """ Lee los buzones, clasifica y envía acuses """
     click.echo('Hola, ¡soy Clasificador!')
     try:
-        config.email = validar_email(email)
-        config.fecha = validar_fecha(fecha)
         config.rama = validar_rama(rama)
+        config.distrito = validar_email(distrito)
+        config.autoridad = validar_email(autoridad)
+        config.fecha = validar_fecha(fecha)
         config.cargar_configuraciones()
     except Exception as e:
         click.echo(str(e))
@@ -58,7 +60,7 @@ def leer(config):
 @cli.command()
 @pass_config
 def leer_clasificar(config):
-    """ Leer y clasificar """
+    """ Leer buzón y clasificar documentos """
     click.echo('Voy a leer y clasificar...')
     clientes = Clientes(config)
     buzon = Buzon(config)
@@ -76,7 +78,7 @@ def leer_clasificar(config):
 @cli.command()
 @pass_config
 def leer_clasificar_responder(config):
-    """ Leer, clasificar y responder """
+    """ Leer buzón, clasificar documentos y responder """
     click.echo('Voy a leer, clasificar y responder...')
     clientes = Clientes(config)
     buzon = Buzon(config)
