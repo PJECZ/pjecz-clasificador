@@ -2,8 +2,8 @@ import click
 import sys
 from comunes.config import pass_config
 from comunes.funciones import validar_email, validar_fecha, validar_rama
-from buzones.buzon import Buzon
 from clientes.clientes import Clientes
+from depositos.deposito import Deposito
 
 
 @click.group()
@@ -13,7 +13,7 @@ from clientes.clientes import Clientes
 @click.option('--fecha', default='', type=str, help='Filtro por Fecha AAAA-MM-DD')
 @pass_config
 def cli(config, rama, distrito, autoridad, fecha):
-    """ Lee los buzones, clasifica y envía acuses """
+    """ Rastrea los depoósitos de archivos y envía acuses de los mismos """
     click.echo('Hola, ¡soy Clasificador!')
     try:
         config.rama = validar_rama(rama)
@@ -44,13 +44,13 @@ def informar(config):
 
 @cli.command()
 @pass_config
-def leer(config):
-    """ Leer """
-    click.echo('Voy a leer...')
-    buzon = Buzon(config)
+def rastrear(config):
+    """ Rastrear documentos """
+    click.echo('Voy a rastrear...')
+    deposito = Deposito(config)
     try:
-        buzon.leer_mensajes()
-        click.echo(repr(buzon))
+        deposito.rastrear()
+        click.echo(repr(deposito))
     except Exception as e:
         click.echo(str(e))
         sys.exit(1)
@@ -59,35 +59,16 @@ def leer(config):
 
 @cli.command()
 @pass_config
-def leer_clasificar(config):
-    """ Leer buzón y clasificar documentos """
-    click.echo('Voy a leer y clasificar...')
+def rastrear_responder(config):
+    """ Rastrear documentos y responder """
+    click.echo('Voy a rastrear y responder...')
     clientes = Clientes(config)
-    buzon = Buzon(config)
+    deposito = Deposito(config)
     try:
-        remitentes = clientes.cargar()
-        buzon.leer_mensajes()
-        buzon.guardar_adjuntos(remitentes)
-        click.echo(repr(buzon))
-    except Exception as e:
-        click.echo(str(e))
-        sys.exit(1)
-    sys.exit(0)
-
-
-@cli.command()
-@pass_config
-def leer_clasificar_responder(config):
-    """ Leer buzón, clasificar documentos y responder """
-    click.echo('Voy a leer, clasificar y responder...')
-    clientes = Clientes(config)
-    buzon = Buzon(config)
-    try:
-        remitentes = clientes.cargar()
-        buzon.leer_mensajes()
-        buzon.guardar_adjuntos(remitentes)
-        buzon.responder_con_acuses(remitentes)
-        click.echo(repr(buzon))
+        clientes.cargar()
+        deposito.rastrear()
+        deposito.responder_con_acuses(clientes)
+        click.echo(repr(deposito))
     except Exception as e:
         click.echo(str(e))
         sys.exit(1)
@@ -95,6 +76,5 @@ def leer_clasificar_responder(config):
 
 
 cli.add_command(informar)
-cli.add_command(leer)
-cli.add_command(leer_clasificar)
-cli.add_command(leer_clasificar_responder)
+cli.add_command(rastrear)
+cli.add_command(rastrear_responder)
