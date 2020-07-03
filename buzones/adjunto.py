@@ -44,7 +44,8 @@ class Adjunto(object):
             if self.ruta is None:
                 raise Exception('ERROR: No hay ruta definida para guardar el adjunto.')
             if self.contenido_tipo not in self.config.contenidos_tipos:
-                bitacora.warning('[{}] Debería omitir {} por ser {}'.format(self.config.rama, self.archivo, self.contenido_tipo))
+                bitacora.warning('[{}] Se omite {} por ser {}'.format(self.config.rama, self.archivo, self.contenido_tipo))
+                return(False)
             directorio_completo = self.config.deposito_ruta + '/' + self.directorio
             try:
                 if not os.path.exists(directorio_completo):
