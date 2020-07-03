@@ -10,6 +10,7 @@ class Config(object):
         self.distrito = ''  # Filtro
         self.autoridad = ''  # Filtro
         self.fecha = str(date.today())  # Filtro
+        self.contenidos_tipos = ''
         self.email_desarrollo = ''
         self.salt = ''
         self.servidor_imap = ''
@@ -39,6 +40,7 @@ class Config(object):
         settings = configparser.ConfigParser()
         settings.read('settings.ini')
         try:
+            self.contenidos_tipos = settings['global']['contenidos_tipos'].split(',')
             if 'email_desarrollo' in settings['global']:
                 self.email_desarrollo = settings['global']['email_desarrollo']
             self.salt = settings['global']['salt']

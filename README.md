@@ -1,3 +1,3 @@
 # pjecz-clasificador
 
-Lee, clasifica y responde mensajes de correo electrónico
+Lee los buzones, clasifica documentos adjuntos y envía acuses.
