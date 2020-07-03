@@ -13,8 +13,8 @@ from depositos.deposito import Deposito
 @click.option('--fecha', default='', type=str, help='Filtro por Fecha AAAA-MM-DD')
 @pass_config
 def cli(config, rama, distrito, autoridad, fecha):
-    """ Rastrea los depoósitos de archivos y envía acuses de los mismos """
-    click.echo('Hola, ¡soy Clasificador!')
+    """ Rastrea los depoósitos de archivos y envía acuses de publicación """
+    click.echo('Hola, ¡soy Contestador!')
     try:
         config.rama = validar_rama(rama)
         config.distrito = validar_email(distrito)

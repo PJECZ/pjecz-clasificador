@@ -19,18 +19,32 @@ class Mensaje(object):
         self.email = email
         self.asunto = asunto
         self.adjuntos = adjuntos
+        self.adjuntos_descartados = []
         self.acuse = Acuse(self.config)
         self.ya_guardado = False
+        self.ya_guardado_adjuntos_validos = False
         self.ya_respondido = False
 
-    def guardar_adjuntos(self, ruta):
-        """ Clasificar los adjuntos en el mensaje """
+    def guardar_adjuntos(self, cliente_ruta):
+        """ Guardar los adjuntos en el mensaje, entrega verdadero si guarda adjuntos válidos """
         if self.ya_guardado is False:
             if len(self.adjuntos) > 0:
+                adjuntos_validos = []
                 for adjunto in self.adjuntos:
-                    adjunto.establecer_ruta(ruta)
-                    adjunto.guardar()
+                    adjunto.establecer_ruta(cliente_ruta)
+                    if adjunto.guardar():
+                        adjuntos_validos.append(adjunto)
+                    else:
+                        self.adjuntos_descartados.append(adjunto)
+                self.adjuntos = adjuntos_validos
+                if len(self.adjuntos) > 0:
+                    self.ya_guardado_adjuntos_validos = True
+                else:
+                    bitacora.warning('[{}] No son válidos los adjuntos del mensaje de {}'.format(self.config.rama, self.email))
+            else:
+                bitacora.warning('[{}] Sin adjuntos el mensaje de {}'.format(self.config.rama, self.email))
             self.ya_guardado = True
+            return(self.ya_guardado_adjuntos_validos)
 
     def crear_identificador(self):
         """ Entrega el identificador del documento """
@@ -40,9 +54,11 @@ class Mensaje(object):
         return(identificador)
 
     def enviar_acuse(self, destinatario):
-        """ Enviar acuse vía correo electrónico """
+        """ Enviar acuse vía correo electrónico, entrega verdadero si lo hace """
         if self.ya_guardado is False:
             raise Exception('ERROR: No puede enviar acuse porque no ha guardado los adjuntos.')
+        if self.ya_guardado_adjuntos_validos is False:
+            return(False)
         if self.ya_respondido is False:
             if len(self.adjuntos) > 0:
                 self.acuse.crear_asunto()

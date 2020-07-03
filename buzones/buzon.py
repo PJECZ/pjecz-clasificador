@@ -54,13 +54,15 @@ class Buzon(object):
             mensajes_clasificados = []
             for mensaje in self.mensajes:
                 if mensaje.email in remitentes:
-                    remitente = remitentes[mensaje.email]
-                    mensaje.guardar_adjuntos(remitente['ruta'])
-                    mensajes_clasificados.append(mensaje)
                     bitacora.info('[{}] Mensaje reconocido de {}'.format(self.config.rama, mensaje.email))
+                    remitente = remitentes[mensaje.email]
+                    if mensaje.guardar_adjuntos(remitente['ruta']):
+                        mensajes_clasificados.append(mensaje)
+                    else:
+                        self.mensajes_descartados.append(mensaje)
                 else:
-                    self.mensajes_descartados.append(mensaje)
                     bitacora.warning('[{}] Mensaje descartado de {}'.format(self.config.rama, mensaje.email))
+                    self.mensajes_descartados.append(mensaje)
             self.mensajes = mensajes_clasificados
             self.ya_guardados = True
         return(self.mensajes)

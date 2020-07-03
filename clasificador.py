@@ -13,7 +13,7 @@ from clientes.clientes import Clientes
 @click.option('--fecha', default='', type=str, help='Filtro por Fecha AAAA-MM-DD')
 @pass_config
 def cli(config, rama, distrito, autoridad, fecha):
-    """ Lee los buzones, clasifica y envía acuses """
+    """ Lee los buzones, clasifica documentos adjuntos y envía acuses """
     click.echo('Hola, ¡soy Clasificador!')
     try:
         config.rama = validar_rama(rama)
