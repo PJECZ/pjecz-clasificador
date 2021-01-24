@@ -1,5 +1,9 @@
-import click
+"""
+Clasificador
+"""
 import sys
+import click
+
 from comunes.config import pass_config
 from comunes.funciones import validar_email, validar_fecha, validar_rama
 from buzones.buzon import Buzon
@@ -21,8 +25,8 @@ def cli(config, rama, distrito, autoridad, fecha):
         config.autoridad = validar_email(autoridad)
         config.fecha = validar_fecha(fecha)
         config.cargar_configuraciones()
-    except Exception as e:
-        click.echo(str(e))
+    except Exception as error:
+        click.echo(str(error))
         sys.exit(1)
 
 
@@ -36,8 +40,8 @@ def informar(config):
         clientes.cargar()
         click.echo(repr(clientes))
         click.echo(clientes.crear_tabla())
-    except Exception as e:
-        click.echo(str(e))
+    except Exception as error:
+        click.echo(str(error))
         sys.exit(1)
     sys.exit(0)
 
@@ -51,8 +55,8 @@ def leer(config):
     try:
         buzon.leer_mensajes()
         click.echo(repr(buzon))
-    except Exception as e:
-        click.echo(str(e))
+    except Exception as error:
+        click.echo(str(error))
         sys.exit(1)
     sys.exit(0)
 
@@ -69,8 +73,8 @@ def leer_clasificar(config):
         buzon.leer_mensajes()
         buzon.guardar_adjuntos(remitentes)
         click.echo(repr(buzon))
-    except Exception as e:
-        click.echo(str(e))
+    except Exception as error:
+        click.echo(str(error))
         sys.exit(1)
     sys.exit(0)
 
@@ -88,8 +92,8 @@ def leer_clasificar_responder(config):
         buzon.guardar_adjuntos(remitentes)
         buzon.responder_con_acuses(remitentes)
         click.echo(repr(buzon))
-    except Exception as e:
-        click.echo(str(e))
+    except Exception as error:
+        click.echo(str(error))
         sys.exit(1)
     sys.exit(0)
 

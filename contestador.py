@@ -1,5 +1,9 @@
-import click
+"""
+Contestador
+"""
 import sys
+import click
+
 from comunes.config import pass_config
 from comunes.funciones import validar_email, validar_fecha, validar_rama
 from clientes.clientes import Clientes
@@ -21,8 +25,8 @@ def cli(config, rama, distrito, autoridad, fecha):
         config.autoridad = validar_email(autoridad)
         config.fecha = validar_fecha(fecha)
         config.cargar_configuraciones()
-    except Exception as e:
-        click.echo(str(e))
+    except Exception as error:
+        click.echo(str(error))
         sys.exit(1)
 
 
@@ -36,8 +40,8 @@ def informar(config):
         clientes.cargar()
         click.echo(repr(clientes))
         click.echo(clientes.crear_tabla())
-    except Exception as e:
-        click.echo(str(e))
+    except Exception as error:
+        click.echo(str(error))
         sys.exit(1)
     sys.exit(0)
 
@@ -51,8 +55,8 @@ def rastrear(config):
     try:
         deposito.rastrear()
         click.echo(repr(deposito))
-    except Exception as e:
-        click.echo(str(e))
+    except Exception as error:
+        click.echo(str(error))
         sys.exit(1)
     sys.exit(0)
 
@@ -69,8 +73,8 @@ def rastrear_responder(config):
         deposito.rastrear()
         deposito.responder_con_acuses(clientes)
         click.echo(repr(deposito))
-    except Exception as e:
-        click.echo(str(e))
+    except Exception as error:
+        click.echo(str(error))
         sys.exit(1)
     sys.exit(0)
 

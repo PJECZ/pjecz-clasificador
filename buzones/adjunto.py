@@ -1,8 +1,11 @@
-import logging
+"""
+Adjunto
+"""
 import os
+import logging
 from datetime import datetime
-from comunes.funciones import mes_en_palabra, hoy_dia_mes_ano
 
+from comunes.funciones import mes_en_palabra, hoy_dia_mes_ano
 
 bitacora = logging.getLogger(__name__)
 bitacora.setLevel(logging.INFO)
@@ -36,7 +39,7 @@ class Adjunto(object):
             dia, mes, ano = hoy_dia_mes_ano()
         self.directorio = f'{cliente_ruta}/{ano}/{mes}'
         self.ruta = f'{self.directorio}/{self.archivo}'
-        return(self.ruta)
+        return self.ruta
 
     def guardar(self):
         """ Guardar el archivo adjunto, entrega verdadero de tener éxito """
@@ -44,30 +47,30 @@ class Adjunto(object):
             if self.ruta is None:
                 raise Exception('ERROR: No hay ruta definida para guardar el adjunto.')
             if self.contenido_tipo not in self.config.contenidos_tipos:
-                bitacora.warning('[{}] Se omite {} por ser {}'.format(self.config.rama, self.archivo, self.contenido_tipo))
-                return(False)
+                bitacora.warning('[%s] Se omite %s por ser %s', self.config.rama, self.archivo, self.contenido_tipo)
+                return False
             directorio_completo = self.config.deposito_ruta + '/' + self.directorio
             try:
                 if not os.path.exists(directorio_completo):
                     os.makedirs(directorio_completo)
             except Exception:
-                bitacora.error('[{}] Falló al crear el directorio {}'.format(self.config.rama, directorio_completo))
-                return(False)
+                bitacora.error('[%s] Falló al crear el directorio %s', self.config.rama, directorio_completo)
+                return False
             self.ruta_completa = os.path.join(directorio_completo, self.archivo)
             try:
                 with open(self.ruta_completa, 'wb') as puntero:
                     puntero.write(self.contenido_binario)
             except Exception:
-                bitacora.error('[{}] Falló al escribir {}'.format(self.config.rama, self.ruta_completa))
-                return(False)
+                bitacora.error('[%s] Falló al escribir %s', self.config.rama, self.ruta_completa)
+                return False
             self.ya_guardado = True
-            bitacora.info('[{}] Guardado en {}'.format(self.config.rama, self.ruta))
-            return(True)
+            bitacora.info('[%s] Guardado en %s', self.config.rama, self.ruta)
+            return True
 
     def __repr__(self):
         if self.ya_guardado:
-            return(f'<Adjunto> Tipo: {self.contenido_tipo}, Guardado en: {self.ruta_completa}')
+            return f'<Adjunto> Tipo: {self.contenido_tipo}, Guardado en: {self.ruta_completa}'
         elif self.ruta is None:
-            return(f'<Adjunto> Tipo: {self.contenido_tipo}, Archivo: {self.archivo}')
+            return f'<Adjunto> Tipo: {self.contenido_tipo}, Archivo: {self.archivo}'
         else:
-            return(f'<Adjunto> Tipo: {self.contenido_tipo}, Ruta: {self.ruta}')
+            return f'<Adjunto> Tipo: {self.contenido_tipo}, Ruta: {self.ruta}'

@@ -1,3 +1,6 @@
+"""
+Acuse
+"""
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -24,7 +27,7 @@ class Acuse(object):
         """ Elaborar asunto """
         if self.config.depositos_acuse_asunto != '':
             self.asunto = self.config.depositos_acuse_asunto
-            return(self.asunto)
+            return self.asunto
         else:
             raise Exception('ERROR: Falta depositos_acuse_asunto en settings.ini')
 
@@ -44,7 +47,7 @@ class Acuse(object):
             mes=mes,
             ano=ano,
         )
-        return(self.contenido)
+        return self.contenido
 
     def enviar(self, email):
         """ Enviar mensaje vía correo electrónico """
@@ -79,6 +82,5 @@ class Acuse(object):
 
     def __repr__(self):
         if self.ya_enviado:
-            return('<Acuse> Enviado a {}'.format(self.email))
-        else:
-            return('<Acuse>')
+            return '<Acuse> Enviado a {}'.format(self.email)
+        return '<Acuse>'

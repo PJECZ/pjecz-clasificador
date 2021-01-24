@@ -1,8 +1,11 @@
+"""
+Buzon
+"""
 import logging
-from imap_tools import MailBox, Q
+from imap_tools import MailBox, AND
+
 from buzones.mensaje import Mensaje
 from buzones.adjunto import Adjunto
-
 
 bitacora = logging.getLogger(__name__)
 bitacora.setLevel(logging.INFO)
@@ -27,7 +30,7 @@ class Buzon(object):
         """ Leer los mensajes en el buzón, entrega listado de Mensajes """
         if self.ya_leidos is False:
             with MailBox(self.config.servidor_imap).login(self.config.email_direccion, self.config.email_contrasena) as mailbox:
-                for msg in mailbox.fetch(Q(seen=False)):
+                for msg in mailbox.fetch(AND(seen=False)):
                     adjuntos = []
                     for adj in msg.attachments:
                         adjuntos.append(Adjunto(
@@ -43,8 +46,8 @@ class Buzon(object):
                         adjuntos=adjuntos,
                     ))
             self.ya_leidos = True
-            bitacora.info('[{}] Leídos {} mensajes'.format(self.config.rama, len(self.mensajes)))
-        return(self.mensajes)
+            bitacora.info('[%s] Leídos %s mensajes', self.config.rama, len(self.mensajes))
+        return self.mensajes
 
     def guardar_adjuntos(self, remitentes):
         """ Guardar los adjuntos en los mensajes, entrega listado de Mensajes """
@@ -54,18 +57,18 @@ class Buzon(object):
             mensajes_clasificados = []
             for mensaje in self.mensajes:
                 if mensaje.email in remitentes:
-                    bitacora.info('[{}] Mensaje reconocido de {}'.format(self.config.rama, mensaje.email))
+                    bitacora.info('[%s] Mensaje reconocido de %s', self.config.rama, mensaje.email)
                     remitente = remitentes[mensaje.email]
                     if mensaje.guardar_adjuntos(remitente['ruta']):
                         mensajes_clasificados.append(mensaje)
                     else:
                         self.mensajes_descartados.append(mensaje)
                 else:
-                    bitacora.warning('[{}] Mensaje descartado de {}'.format(self.config.rama, mensaje.email))
+                    bitacora.warning('[%s] Mensaje descartado de %s', self.config.rama, mensaje.email)
                     self.mensajes_descartados.append(mensaje)
             self.mensajes = mensajes_clasificados
             self.ya_guardados = True
-        return(self.mensajes)
+        return self.mensajes
 
     def responder_con_acuses(self, remitentes):
         """ Responder con acuses """
@@ -79,19 +82,18 @@ class Buzon(object):
                 if mensaje.ya_respondido is False and mensaje.email in remitentes:
                     mensaje.enviar_acuse(remitentes[mensaje.email])
                     contador += 1
-            bitacora.info('[{}] Respondidos {} mensajes'.format(self.config.rama, contador))
+            bitacora.info('[%s] Respondidos %s mensajes', self.config.rama, contador)
             self.ya_respondidos = True
 
     def __repr__(self):
         if len(self.mensajes) > 0:
             mensajes_repr = '\n  '.join([repr(mensaje) for mensaje in self.mensajes])
             if self.ya_respondidos:
-                return('<Buzon> Respondidos {}, descartados {}\n  {}'.format(len(self.mensajes), len(self.mensajes_descartados), mensajes_repr))
+                return '<Buzon> Respondidos {}, descartados {}\n  {}'.format(len(self.mensajes), len(self.mensajes_descartados), mensajes_repr)
             elif self.ya_guardados:
-                return('<Buzon> Guardados {}, descartados {}\n  {}'.format(len(self.mensajes), len(self.mensajes_descartados), mensajes_repr))
+                return '<Buzon> Guardados {}, descartados {}\n  {}'.format(len(self.mensajes), len(self.mensajes_descartados), mensajes_repr)
             elif self.ya_leidos:
-                return('<Buzon> Leídos {}\n  {}'.format(len(self.mensajes), mensajes_repr))
+                return '<Buzon> Leídos {}\n  {}'.format(len(self.mensajes), mensajes_repr)
             else:
-                return('<Buzon>')
-        else:
-            return('<Buzon> SIN MENSAJES')
+                return '<Buzon>'
+        return '<Buzon> SIN MENSAJES'

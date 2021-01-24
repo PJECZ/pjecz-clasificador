@@ -1,9 +1,13 @@
+"""
+Config
+"""
 import click
 import configparser
 from datetime import date
 
 
 class Config(object):
+    """ Config """
 
     def __init__(self):
         self.rama = ''
@@ -35,6 +39,7 @@ class Config(object):
         self.remitentes_csv_columna_ruta = ''
 
     def cargar_configuraciones(self):
+        """ Cargar configuraciones desde settings.ini """
         if self.rama == '':
             raise Exception('ERROR: Faltó definir la rama.')
         settings = configparser.ConfigParser()

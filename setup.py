@@ -8,7 +8,7 @@ setup(
         'contestador',
     ],
     install_requires=[
-        'Click',
+        'click',
         'google-api-python-client',
         'google-auth-httplib2',
         'google-auth-oauthlib',

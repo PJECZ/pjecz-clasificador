@@ -1,5 +1,8 @@
-import csv
+"""
+Clientes
+"""
 import os
+import csv
 import pickle
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -40,7 +43,7 @@ class Clientes(object):
                                 'autoridad': autoridad,
                                 'ruta': ruta,
                             }
-        return(self.clientes)
+        return self.clientes
 
     def cargar_desde_google_sheets_api(self):
         """ Cargar los clientes desde Google Sheets """
@@ -85,7 +88,7 @@ class Clientes(object):
                             'autoridad': autoridad,
                             'ruta': ruta,
                         }
-        return(self.clientes)
+        return self.clientes
 
     def cargar(self):
         """ Cargar los clientes """
@@ -98,7 +101,7 @@ class Clientes(object):
             raise Exception('ERROR: No se pueden cargar los clientes porque la configuración está incompleta.')
         if len(self.clientes) == 0:
             raise Exception('AVISO: No se cargó ningún cliente.')
-        return(self.clientes)
+        return self.clientes
 
     def filtrar_con_archivo_ruta(self, archivo_ruta):
         """ Filtrar los clientes donde ruta sea el inicio de archivo_ruta """
@@ -112,16 +115,16 @@ class Clientes(object):
                     'autoridad': informacion['autoridad'],
                     'ruta': informacion['ruta'],
                 }
-        return(filtrados)
+        return filtrados
 
     def crear_tabla(self):
+        """ Crear tabla con Tabulate para mostrar en terminal """
         tabla = [['e-mail', 'Mover a']]
         for email, informacion in self.clientes.items():
             tabla.append([email, informacion['ruta']])
-        return(tabulate(tabla, headers='firstrow'))
+        return tabulate(tabla, headers='firstrow')
 
     def __repr__(self):
         if self.alimentado is True:
-            return('<Clientes> Hay {} clientes'.format(len(self.clientes)))
-        else:
-            return('<Clientes>')
+            return '<Clientes> Hay {} clientes'.format(len(self.clientes))
+        return '<Clientes>'

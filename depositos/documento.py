@@ -1,3 +1,6 @@
+"""
+Documento
+"""
 import hashlib
 import os
 from comunes.funciones import validar_fecha
@@ -34,7 +37,7 @@ class Documento(object):
             self.fecha = validar_fecha(self.archivo[:10])
         except Exception:
             self.fecha = None
-        return(self.distrito, self.autoridad)
+        return self.distrito, self.autoridad
 
     def crear_identificador(self):
         """ Entrega el identificador del documento """
@@ -44,7 +47,7 @@ class Documento(object):
             raise Exception('ERROR: Falta definir el distrito y/o autoridad.')
         cadena = f'{self.distrito}|{self.autoridad}|{self.archivo}'
         self.identificador = hashlib.sha256(self.config.salt.encode() + cadena.encode()).hexdigest()
-        return(self.identificador)
+        return self.identificador
 
     def enviar_acuse(self, email):
         """ Enviar acuse vía correo electrónico """
@@ -68,8 +71,8 @@ class Documento(object):
     def __repr__(self):
         if self.ya_enviado:
             acuses_repr = '\n    '.join([repr(acuse) for acuse in self.acuses])
-            return('<Documento> Enviado Ruta: {}\n    {}'.format(self.ruta, acuses_repr))
+            return '<Documento> Enviado Ruta: {}\n    {}'.format(self.ruta, acuses_repr)
         elif self.ruta is None:
-            return('<Documento>')
+            return '<Documento>'
         else:
-            return('<Documento> Ruta: {}'.format(self.ruta))
+            return '<Documento> Ruta: {}'.format(self.ruta)

@@ -1,3 +1,6 @@
+"""
+Depósito
+"""
 import os
 from depositos.documento import Documento
 
@@ -35,7 +38,7 @@ class Deposito(object):
                     continue
                 self.documentos.append(documento)
             self.ya_rastreado = True
-        return(self.documentos)
+        return self.documentos
 
     def responder_con_acuses(self, destinatarios):
         """ Responder con acuses """
@@ -55,10 +58,9 @@ class Deposito(object):
         if len(self.documentos) > 0:
             documentos_repr = '\n  '.join([repr(documento) for documento in self.documentos])
             if self.ya_respondidos:
-                return('<Deposito> Respondidos {}\n  {}'.format(len(self.documentos), documentos_repr))
+                return '<Deposito> Respondidos {}\n  {}'.format(len(self.documentos), documentos_repr)
             elif self.ya_rastreado:
-                return('<Deposito> Rastreados {}\n  {}'.format(len(self.documentos), documentos_repr))
+                return '<Deposito> Rastreados {}\n  {}'.format(len(self.documentos), documentos_repr)
             else:
-                return('<Deposito> Cantidad de documentos {}'.format(len(self.documentos)))
-        else:
-            return('<Deposito>')
+                return '<Deposito> Cantidad de documentos {}'.format(len(self.documentos))
+        return '<Deposito>'
