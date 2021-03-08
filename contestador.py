@@ -11,14 +11,14 @@ from depositos.deposito import Deposito
 
 
 @click.group()
-@click.option('--rama', default='', type=str, help='Acuerdos, Edictos, EdictosJuzgados o Sentencias')
-@click.option('--distrito', default='', type=str, help='Filtro por Distrito')
-@click.option('--autoridad', default='', type=str, help='Filtro por Autoridad')
-@click.option('--fecha', default='', type=str, help='Filtro por Fecha AAAA-MM-DD')
+@click.option("--rama", default="", type=str, help="Acuerdos, Edictos, EdictosJuzgados o Sentencias")
+@click.option("--distrito", default="", type=str, help="Filtro por Distrito")
+@click.option("--autoridad", default="", type=str, help="Filtro por Autoridad")
+@click.option("--fecha", default="", type=str, help="Filtro por Fecha AAAA-MM-DD")
 @pass_config
 def cli(config, rama, distrito, autoridad, fecha):
-    """ Rastrea los depoósitos de archivos y envía acuses de publicación """
-    click.echo('Hola, ¡soy Contestador!')
+    """ Mi objetivo es rastrear los depósitos de archivos y enviar sus acuses de publicación """
+    click.echo("Hola, ¡soy Contestador!")
     try:
         config.rama = validar_rama(rama)
         config.distrito = validar_email(distrito)
@@ -34,7 +34,7 @@ def cli(config, rama, distrito, autoridad, fecha):
 @pass_config
 def informar(config):
     """ Informar mostrando los clientes """
-    click.echo('Voy a informar...')
+    click.echo("Voy a informar...")
     clientes = Clientes(config)
     try:
         clientes.cargar()
@@ -50,7 +50,7 @@ def informar(config):
 @pass_config
 def rastrear(config):
     """ Rastrear documentos """
-    click.echo('Voy a rastrear...')
+    click.echo("Voy a rastrear...")
     deposito = Deposito(config)
     try:
         deposito.rastrear()
@@ -65,7 +65,7 @@ def rastrear(config):
 @pass_config
 def rastrear_responder(config):
     """ Rastrear documentos y responder """
-    click.echo('Voy a rastrear y responder...')
+    click.echo("Voy a rastrear y responder...")
     clientes = Clientes(config)
     deposito = Deposito(config)
     try:

@@ -17,7 +17,7 @@ from buzones.buzon import Buzon
 @click.option("--fecha", default="", type=str, help="Filtro por Fecha AAAA-MM-DD")
 @pass_config
 def cli(config, rama, distrito, autoridad, fecha):
-    """ Mi objetivo es leer los buzones, clasificar y enviar acuses de los mensajes """
+    """ Mi objetivo es leer los buzones, clasificar y enviar acuses de los mensajes recibidos """
     click.echo("Hola, ¡soy Clasificador!")
     try:
         config.rama = validar_rama(rama)
