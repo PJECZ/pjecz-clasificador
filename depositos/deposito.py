@@ -9,6 +9,7 @@ class Deposito(object):
     """ Depósito es un lugar de almacenamiento de documentos """
 
     def __init__(self, config):
+        """ Inicializar """
         self.config = config
         self.documentos = []
         self.ya_rastreado = False
@@ -19,22 +20,22 @@ class Deposito(object):
         for item in os.scandir(ruta):
             if item.is_dir(follow_symlinks=False):
                 yield from self.rastrear_recursivo(item.path)
-            elif (item.name.endswith('.pdf') or item.name.endswith('.PDF')):
-                yield item.path[len(self.config.deposito_ruta) + 1:]
+            elif item.name.endswith(".pdf") or item.name.endswith(".PDF"):
+                yield item.path[len(self.config.deposito_ruta) + 1 :]
 
     def rastrear(self):
         """ Rastrear los documentos en el depósito, entrega el lista de Documentos """
         if self.ya_rastreado is False:
             if not os.path.exists(self.config.deposito_ruta):
-                raise Exception('ERROR: No existe deposito_ruta.')
+                raise Exception("ERROR: No existe deposito_ruta.")
             for ruta in list(self.rastrear_recursivo(self.config.deposito_ruta)):
                 documento = Documento(self.config)
                 documento.establecer_ruta(ruta)
-                if self.config.fecha != '' and documento.fecha != self.config.fecha:
+                if self.config.fecha != "" and documento.fecha != self.config.fecha:
                     continue
-                if self.config.distrito != '' and documento.distrito != self.config.distrito:
+                if self.config.distrito != "" and documento.distrito != self.config.distrito:
                     continue
-                if self.config.autoridad != '' and documento.autoridad != self.config.autoridad:
+                if self.config.autoridad != "" and documento.autoridad != self.config.autoridad:
                     continue
                 self.documentos.append(documento)
             self.ya_rastreado = True
@@ -55,12 +56,13 @@ class Deposito(object):
             self.ya_respondidos = True
 
     def __repr__(self):
+        """ Representación """
         if len(self.documentos) > 0:
-            documentos_repr = '\n  '.join([repr(documento) for documento in self.documentos])
+            documentos_repr = "\n  ".join([repr(documento) for documento in self.documentos])
             if self.ya_respondidos:
-                return '<Deposito> Respondidos {}\n  {}'.format(len(self.documentos), documentos_repr)
+                return "<Deposito> Respondidos {}\n  {}".format(len(self.documentos), documentos_repr)
             elif self.ya_rastreado:
-                return '<Deposito> Rastreados {}\n  {}'.format(len(self.documentos), documentos_repr)
+                return "<Deposito> Rastreados {}\n  {}".format(len(self.documentos), documentos_repr)
             else:
-                return '<Deposito> Cantidad de documentos {}'.format(len(self.documentos))
-        return '<Deposito>'
+                return "<Deposito> Cantidad de documentos {}".format(len(self.documentos))
+        return "<Deposito>"

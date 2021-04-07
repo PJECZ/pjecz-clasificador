@@ -1,5 +1,11 @@
 # pjecz-clasificador
 
-## Objetivo
+## Objetivos
 
-Leer los buzones de correos electrónicos, clasifica documentos adjuntos y envía acuses.
+- Leer los mensajes de correos electrónicos,
+- Clasifica documentos adjuntos y
+- Envía acuses.
+
+## Comandos
+
+clasificador --rama acuerdos leer-clasificar-responder

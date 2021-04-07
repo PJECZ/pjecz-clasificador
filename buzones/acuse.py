@@ -12,6 +12,7 @@ class Acuse(object):
     """ Acuse de recepción de un mensaje """
 
     def __init__(self, config):
+        """ Inicializar """
         self.config = config
         self.plantillas_env = Environment(
             loader=FileSystemLoader("buzones/plantillas"),
@@ -81,6 +82,7 @@ class Acuse(object):
             self.ya_enviado = True
 
     def __repr__(self):
+        """ Representación """
         if self.ya_enviado:
             return "<Acuse> Enviado a {}".format(self.email)
         else:
