@@ -15,7 +15,7 @@ empunadura.setFormatter(formato)
 bitacora.addHandler(empunadura)
 
 
-class Adjunto(object):
+class Adjunto:
     """ Archivo adjunto en un mensaje """
 
     def __init__(self, config, archivo, contenido_tipo, contenido_binario):

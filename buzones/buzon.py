@@ -15,7 +15,7 @@ empunadura.setFormatter(formato)
 bitacora.addHandler(empunadura)
 
 
-class Buzon(object):
+class Buzon:
     """ Buzon """
 
     def __init__(self, config):

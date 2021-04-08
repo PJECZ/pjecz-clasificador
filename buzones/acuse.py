@@ -8,7 +8,7 @@ from jinja2 import Environment, FileSystemLoader
 from comunes.funciones import hoy_dia_mes_ano
 
 
-class Acuse(object):
+class Acuse:
     """ Acuse de recepción de un mensaje """
 
     def __init__(self, config):

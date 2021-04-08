@@ -14,7 +14,7 @@ empunadura.setFormatter(formato)
 bitacora.addHandler(empunadura)
 
 
-class Mensaje(object):
+class Mensaje:
     """ Mensaje recibido en el Buzón """
 
     def __init__(self, config, email, asunto, adjuntos):
