@@ -1,9 +1,12 @@
 """
 Adjunto
 """
+from datetime import datetime, date, timedelta
 import os
 import logging
-from datetime import datetime
+from pathlib import Path
+import re
+from unidecode import unidecode
 
 from comunes.funciones import mes_en_palabra, hoy_dia_mes_ano
 
@@ -16,10 +19,10 @@ bitacora.addHandler(empunadura)
 
 
 class Adjunto:
-    """ Archivo adjunto en un mensaje """
+    """Archivo adjunto en un mensaje"""
 
     def __init__(self, config, archivo, contenido_tipo, contenido_binario):
-        """ Inicializar """
+        """Inicializar"""
         self.config = config
         self.archivo = archivo
         self.contenido_tipo = contenido_tipo
@@ -28,9 +31,13 @@ class Adjunto:
         self.ruta = None
         self.ya_guardado = False
         self.ruta_completa = None
+        hoy = date.today()
+        self.hoy_dt = datetime(year=hoy.year, month=hoy.month, day=hoy.day)
+        self.limite_dt = self.hoy_dt + timedelta(days=-self.config.dias_limite)
+        self.letras_digitos_regex = re.compile("[^0-9a-zA-Z]+")
 
     def establecer_ruta(self, cliente_ruta):
-        """ Establecer la ruta relativa distrito/autoridad/año/mes/archivo donde guardarlo """
+        """Establecer la ruta relativa distrito/autoridad/año/mes/archivo donde guardarlo"""
         try:
             datetime.strptime(self.archivo[0:10], "%Y-%m-%d")
             ano = self.archivo[0:4]
@@ -43,13 +50,16 @@ class Adjunto:
         return self.ruta
 
     def guardar(self):
-        """ Guardar el archivo adjunto, entrega verdadero de tener éxito """
+        """Guardar el archivo adjunto, entrega verdadero de tener éxito"""
         if self.ya_guardado is False:
+
             if self.ruta is None:
                 raise Exception("ERROR: No hay ruta definida para guardar el adjunto.")
+
             if self.contenido_tipo not in self.config.contenidos_tipos:
                 bitacora.warning("[%s] Se omite %s por ser %s", self.config.rama, self.archivo, self.contenido_tipo)
                 return False
+
             directorio_completo = self.config.deposito_ruta + "/" + self.directorio
             try:
                 if not os.path.exists(directorio_completo):
@@ -57,6 +67,27 @@ class Adjunto:
             except Exception:
                 bitacora.error("[%s] Falló al crear el directorio %s", self.config.rama, directorio_completo)
                 return False
+
+            archivo_ruta = Path(self.archivo)
+            if archivo_ruta.suffix.lower() != ".pdf":
+                bitacora.error("[%s] Se omite %s por no tener la extensión pdf")
+                return False
+
+            nombre_sin_extension = unidecode(archivo_ruta.name[:-4])
+            elementos = re.sub(self.letras_digitos_regex, "-", nombre_sin_extension).strip("-").split("-")
+            try:
+                ano = int(elementos[0])
+                mes = int(elementos[1])
+                dia = int(elementos[2])
+                fecha = date(ano, mes, dia)
+            except (IndexError, ValueError):
+                bitacora.error("[%s] Se omite %s por que la fecha es incorrecta", self.config.rama, self.archivo)
+                return False
+
+            if not self.limite_dt <= datetime(year=fecha.year, month=fecha.month, day=fecha.day) <= self.hoy_dt:
+                bitacora.error("[%s] Se omite %s por que la fecha está fuera de rango", self.config.rama, self.archivo)
+                return False
+
             self.ruta_completa = os.path.join(directorio_completo, self.archivo)
             try:
                 with open(self.ruta_completa, "wb") as puntero:
@@ -64,12 +95,13 @@ class Adjunto:
             except Exception:
                 bitacora.error("[%s] Falló al escribir %s", self.config.rama, self.ruta_completa)
                 return False
+
             self.ya_guardado = True
             bitacora.info("[%s] Guardado en %s", self.config.rama, self.ruta)
             return True
 
     def __repr__(self):
-        """ Representación """
+        """Representación"""
         if self.ya_guardado:
             return f"<Adjunto> Tipo: {self.contenido_tipo}, Guardado en: {self.ruta_completa}"
         elif self.ruta is None:

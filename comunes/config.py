@@ -7,10 +7,10 @@ import click
 
 
 class Config:
-    """ Config """
+    """Config"""
 
     def __init__(self):
-        """ Inicializar """
+        """Inicializar"""
         self.rama = ""
         self.distrito = ""  # Filtro
         self.autoridad = ""  # Filtro
@@ -38,9 +38,10 @@ class Config:
         self.remitentes_csv_columna_autoridad = ""
         self.remitentes_csv_columna_email = ""
         self.remitentes_csv_columna_ruta = ""
+        self.dias_limite = 7
 
     def cargar_configuraciones(self):
-        """ Cargar configuraciones desde settings.ini """
+        """Cargar configuraciones desde settings.ini"""
         if self.rama == "":
             raise Exception("ERROR: Faltó definir la rama.")
         settings = configparser.ConfigParser()
@@ -85,6 +86,8 @@ class Config:
                 self.remitentes_csv_columna_email = settings[self.rama]["remitentes_csv_columna_email"]
             if "remitentes_csv_columna_ruta" in settings[self.rama]:
                 self.remitentes_csv_columna_ruta = settings[self.rama]["remitentes_csv_columna_ruta"]
+            if "dias_limite" in settings[self.rama]:
+                self.dias_limite = settings[self.rama]["dias_limite"]
         except KeyError as error:
             raise KeyError(f"ERROR: Falta configuración en settings.ini para la rama {self.rama}") from error
 

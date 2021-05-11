@@ -1,11 +1,11 @@
 """
-Comandos click
+Setup sirve para installar los comandos click
 """
 from setuptools import setup
 
 setup(
-    name="PJECZ Clasificador",
-    version="2.0",
+    name="pjecz-clasificador",
+    version="2.1",
     py_modules=[
         "clasificador",
         "contestador",
@@ -17,6 +17,7 @@ setup(
         "google-auth-oauthlib",
         "imap_tools",
         "Jinja2",
+        "rq",
         "tabulate",
     ],
     entry_points="""
