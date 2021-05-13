@@ -22,6 +22,7 @@ class Config:
         self.servidor_smtp = ""
         self.buzones_acuse_asunto = ""
         self.buzones_acuse_contenido = ""
+        self.buzones_rechazo_contenido = ""
         self.deposito_ruta = ""
         self.depositos_acuse_asunto = ""
         self.depositos_acuse_contenido = ""

@@ -1,5 +1,5 @@
 """
-Adjunto
+Buzones, Adjunto
 """
 from datetime import datetime, date, timedelta
 import os
@@ -52,14 +52,14 @@ class Adjunto:
     def guardar(self):
         """Guardar el archivo adjunto, entrega verdadero de tener éxito"""
         if self.ya_guardado is False:
-
+            # Validar ruta
             if self.ruta is None:
                 raise Exception("ERROR: No hay ruta definida para guardar el adjunto.")
-
+            # Validar tipo de archivo
             if self.contenido_tipo not in self.config.contenidos_tipos:
                 bitacora.warning("[%s] Se omite %s por ser %s", self.config.rama, self.archivo, self.contenido_tipo)
                 return False
-
+            # Crear directorio para almacenar
             directorio_completo = self.config.deposito_ruta + "/" + self.directorio
             try:
                 if not os.path.exists(directorio_completo):
@@ -67,12 +67,12 @@ class Adjunto:
             except Exception:
                 bitacora.error("[%s] Falló al crear el directorio %s", self.config.rama, directorio_completo)
                 return False
-
+            # Validar que tenga extensión PDF
             archivo_ruta = Path(self.archivo)
             if archivo_ruta.suffix.lower() != ".pdf":
                 bitacora.error("[%s] Se omite %s por no tener la extensión pdf")
                 return False
-
+            # Validar fecha
             nombre_sin_extension = unidecode(archivo_ruta.name[:-4])
             elementos = re.sub(self.letras_digitos_regex, "-", nombre_sin_extension).strip("-").split("-")
             try:
@@ -83,11 +83,11 @@ class Adjunto:
             except (IndexError, ValueError):
                 bitacora.error("[%s] Se omite %s por que la fecha es incorrecta", self.config.rama, self.archivo)
                 return False
-
+            # Validar que la fecha esté en el rango correcto
             if not self.limite_dt <= datetime(year=fecha.year, month=fecha.month, day=fecha.day) <= self.hoy_dt:
                 bitacora.error("[%s] Se omite %s por que la fecha está fuera de rango", self.config.rama, self.archivo)
                 return False
-
+            # Escribir el archivo
             self.ruta_completa = os.path.join(directorio_completo, self.archivo)
             try:
                 with open(self.ruta_completa, "wb") as puntero:
@@ -95,7 +95,7 @@ class Adjunto:
             except Exception:
                 bitacora.error("[%s] Falló al escribir %s", self.config.rama, self.ruta_completa)
                 return False
-
+            # Mensaje de éxito
             self.ya_guardado = True
             bitacora.info("[%s] Guardado en %s", self.config.rama, self.ruta)
             return True

@@ -1,5 +1,5 @@
 """
-Acuse
+Buzones, Acuse
 """
 import smtplib
 from email.mime.multipart import MIMEMultipart

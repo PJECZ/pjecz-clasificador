@@ -1,5 +1,5 @@
 """
-Buzon
+Buzones, Buzon
 """
 import logging
 from imap_tools import MailBox, AND

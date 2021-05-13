@@ -1,5 +1,5 @@
 """
-Mensaje
+Buzones, Mensaje
 """
 import logging
 import hashlib
