@@ -35,6 +35,7 @@ class Adjunto:
         self.hoy_dt = datetime(year=hoy.year, month=hoy.month, day=hoy.day)
         self.limite_dt = self.hoy_dt + timedelta(days=-self.config.dias_limite)
         self.letras_digitos_regex = re.compile("[^0-9a-zA-Z]+")
+        self.rechazo_mensaje = None
 
     def establecer_ruta(self, cliente_ruta):
         """Establecer la ruta relativa distrito/autoridad/año/mes/archivo donde guardarlo"""
@@ -58,7 +59,8 @@ class Adjunto:
             # Validar tipo de archivo
             if self.contenido_tipo not in self.config.contenidos_tipos:
                 bitacora.warning("[%s] Se omite %s por ser %s", self.config.rama, self.archivo, self.contenido_tipo)
-                return False
+                self.rechazo_mensaje = "El archivo no es del tipo correcto. Debe ser de tipo pdf."
+                raise AdjuntoRechazo(self.rechazo_mensaje)
             # Crear directorio para almacenar
             directorio_completo = self.config.deposito_ruta + "/" + self.directorio
             try:
@@ -66,12 +68,14 @@ class Adjunto:
                     os.makedirs(directorio_completo)
             except Exception:
                 bitacora.error("[%s] Falló al crear el directorio %s", self.config.rama, directorio_completo)
-                return False
+                self.rechazo_mensaje = "Falló la creación del directorio para almacenar. Favor de reportar."
+                raise AdjuntoRechazo(self.rechazo_mensaje)
             # Validar que tenga extensión PDF
             archivo_ruta = Path(self.archivo)
             if archivo_ruta.suffix.lower() != ".pdf":
                 bitacora.error("[%s] Se omite %s por no tener la extensión pdf")
-                return False
+                self.rechazo_mensaje = "El archivo no tiene la extensión pdf."
+                raise AdjuntoRechazo(self.rechazo_mensaje)
             # Validar fecha
             nombre_sin_extension = unidecode(archivo_ruta.name[:-4])
             elementos = re.sub(self.letras_digitos_regex, "-", nombre_sin_extension).strip("-").split("-")
@@ -82,11 +86,11 @@ class Adjunto:
                 fecha = date(ano, mes, dia)
             except (IndexError, ValueError):
                 bitacora.error("[%s] Se omite %s por que la fecha es incorrecta", self.config.rama, self.archivo)
-                return False
+                raise AdjuntoRechazo("La fecha es incorrecta. El nombre del archivo debe comenzar con los 4 dígitos del año, 2 del mes y 2 del día separados por guiones.")
             # Validar que la fecha esté en el rango correcto
             if not self.limite_dt <= datetime(year=fecha.year, month=fecha.month, day=fecha.day) <= self.hoy_dt:
                 bitacora.error("[%s] Se omite %s por que la fecha está fuera de rango", self.config.rama, self.archivo)
-                return False
+                raise AdjuntoRechazo("La fecha está fuera de rango. No se permiten fechas en el futuro ni muy antiguas.")
             # Escribir el archivo
             self.ruta_completa = os.path.join(directorio_completo, self.archivo)
             try:
@@ -94,7 +98,7 @@ class Adjunto:
                     puntero.write(self.contenido_binario)
             except Exception:
                 bitacora.error("[%s] Falló al escribir %s", self.config.rama, self.ruta_completa)
-                return False
+                raise AdjuntoRechazo("Falló la escritura del archivo. Favor de reportar.")
             # Mensaje de éxito
             self.ya_guardado = True
             bitacora.info("[%s] Guardado en %s", self.config.rama, self.ruta)
@@ -108,3 +112,7 @@ class Adjunto:
             return f"<Adjunto> Tipo: {self.contenido_tipo}, Archivo: {self.archivo}"
         else:
             return f"<Adjunto> Tipo: {self.contenido_tipo}, Ruta: {self.ruta}"
+
+
+class AdjuntoRechazo(Exception):
+    """Se rechaza el archivo adjunto"""

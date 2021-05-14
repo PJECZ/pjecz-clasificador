@@ -4,7 +4,8 @@ Buzones, Mensaje
 import logging
 import hashlib
 from buzones.acuse import Acuse
-
+from buzones.rechazo import Rechazo
+from buzones.adjunto import AdjuntoRechazo
 
 bitacora = logging.getLogger(__name__)
 bitacora.setLevel(logging.INFO)
@@ -15,58 +16,58 @@ bitacora.addHandler(empunadura)
 
 
 class Mensaje:
-    """ Mensaje recibido en el Buzón """
+    """Mensaje recibido en el Buzón"""
 
     def __init__(self, config, email, asunto, adjuntos):
-        """ Inicializar """
+        """Inicializar"""
         self.config = config
         self.email = email
         self.asunto = asunto
         self.adjuntos = adjuntos
-        self.adjuntos_descartados = []
+        self.adjuntos_rechazados = []
         self.acuse = Acuse(self.config)
+        self.rechazo = Rechazo(self.config)
         self.ya_guardado = False
-        self.ya_guardado_adjuntos_validos = False
-        self.ya_respondido = False
+        self.hay_adjuntos_validos = False
+        self.hay_adjuntos_rechazados = False
+        self.ya_enviados_acuses = False
+        self.ya_enviados_rechazos = False
 
     def guardar_adjuntos(self, cliente_ruta):
-        """ Guardar los adjuntos en el mensaje, entrega verdadero si guarda adjuntos válidos """
+        """Guardar los adjuntos en el mensaje"""
         if self.ya_guardado is False:
             if len(self.adjuntos) > 0:
                 adjuntos_validos = []
                 for adjunto in self.adjuntos:
                     adjunto.establecer_ruta(cliente_ruta)
-                    if adjunto.guardar():
+                    try:
+                        adjunto.guardar()
                         adjuntos_validos.append(adjunto)
-                    else:
-                        self.adjuntos_descartados.append(adjunto)
+                    except AdjuntoRechazo:
+                        self.adjuntos_rechazados.append(adjunto)
                 self.adjuntos = adjuntos_validos
-                if len(self.adjuntos) > 0:
-                    self.ya_guardado_adjuntos_validos = True
-                else:
-                    bitacora.warning("[%s] No son válidos los adjuntos del mensaje de %s", self.config.rama, self.email)
+                self.hay_adjuntos_validos = len(self.adjuntos) > 0
+                self.hay_adjuntos_rechazados = len(self.adjuntos_rechazados) > 0
             else:
                 bitacora.warning("[%s] Sin adjuntos el mensaje de %s", self.config.rama, self.email)
             self.ya_guardado = True
-            return self.ya_guardado_adjuntos_validos
 
     def crear_identificador(self):
-        """ Entrega el identificador del documento """
+        """Entrega el identificador del documento"""
         adjuntos_archivos_lista = [adjunto.archivo for adjunto in self.adjuntos]
         cadena = self.email + "|" + "|".join(adjuntos_archivos_lista)
         identificador = hashlib.sha256(self.config.salt.encode() + cadena.encode()).hexdigest()
         return identificador
 
     def enviar_acuse(self, destinatario):
-        """ Enviar acuse vía correo electrónico, entrega verdadero si lo hace """
+        """Enviar acuse vía correo electrónico"""
         if self.ya_guardado is False:
             raise Exception("ERROR: No puede enviar acuse porque no ha guardado los adjuntos.")
-        if self.ya_guardado_adjuntos_validos is False:
+        if self.hay_adjuntos_validos is False:
             return False
-        if self.ya_respondido:
+        if self.ya_enviados_acuses:
             return False
         if len(self.adjuntos) == 0:
-            bitacora.warning("[%s] No tiene adjuntos el mensaje de %s", self.config.rama, self.email)
             return False
         self.acuse.crear_asunto()
         self.acuse.crear_contenido(
@@ -76,19 +77,48 @@ class Mensaje:
             archivos=[adjunto.archivo for adjunto in self.adjuntos],
         )
         self.acuse.enviar(self.email)
-        self.ya_respondido = True
-        adjuntos_texto = ", ".join([adjunto.archivo for adjunto in self.adjuntos])
-        bitacora.info("[%s] Acuse enviado a %s por %s", self.config.rama, self.email, adjuntos_texto)
+        bitacora.info("[%s] Acuse enviado a %s por %s", self.config.rama, self.email, ", ".join([adjunto.archivo for adjunto in self.adjuntos]))
+        self.ya_enviados_acuses = True
+        return True
+
+    def enviar_rechazo(self, destinatario):
+        """Enviar rechazo vía correo electrónico"""
+        if self.ya_guardado is False:
+            raise Exception("ERROR: No puede enviar rechazos porque no ha guardado los adjuntos.")
+        if self.hay_adjuntos_rechazados is False:
+            return False
+        if self.ya_enviados_rechazos:
+            return False
+        if len(self.adjuntos_rechazados) == 0:
+            return False
+        self.rechazo.crear_asunto()
+        self.rechazo.crear_contenido(
+            causas=[adjunto.rechazo_mensaje for adjunto in self.adjuntos_rechazados],
+            autoridad=destinatario["autoridad"],
+            distrito=destinatario["distrito"],
+            archivos=[adjunto.archivo for adjunto in self.adjuntos_rechazados],
+        )
+        self.rechazo.enviar(self.email)
+        bitacora.info("[%s] Rechazo enviado a %s por %s", self.config.rama, self.email, ", ".join([adjunto.archivo for adjunto in self.adjuntos_rechazados]))
+        self.ya_enviados_rechazos = True
         return True
 
     def __repr__(self):
-        """ Representación """
-        if len(self.adjuntos) > 0:
+        """Representación"""
+        if self.ya_guardado:
+            if self.ya_enviados_acuses and self.hay_adjuntos_validos and self.ya_enviados_rechazos and self.hay_adjuntos_rechazados:
+                adjuntos_validos_repr = "\n    ".join([repr(adjunto) for adjunto in self.adjuntos])
+                adjuntos_rechazados_repr = "\n    ".join([repr(adjunto) for adjunto in self.adjuntos_rechazados])
+                return "<Mensaje> De {} guardado\n    {}\n    {}".format(self.email, adjuntos_validos_repr, adjuntos_rechazados_repr)
+            elif self.ya_enviados_acuses and self.hay_adjuntos_validos:
+                adjuntos_validos_repr = "\n    ".join([repr(adjunto) for adjunto in self.adjuntos])
+                return "<Mensaje> De {} guardado\n    {}".format(self.email, adjuntos_validos_repr)
+            elif self.ya_enviados_rechazos and self.hay_adjuntos_rechazados:
+                adjuntos_rechazados_repr = "\n    ".join([repr(adjunto) for adjunto in self.adjuntos_rechazados])
+                return "<Mensaje> De {} guardado\n    {}".format(self.email, adjuntos_rechazados_repr)
+            else:
+                return "<Mensaje> De {} guardado".format(self.email)
+        elif len(self.adjuntos) > 0:
             adjuntos_repr = "\n    ".join([repr(adjunto) for adjunto in self.adjuntos])
-            if self.ya_respondido:
-                return "<Mensaje> Respondido de {}\n    {}\n    {}".format(self.email, adjuntos_repr, repr(self.acuse))
-            elif self.ya_guardado:
-                return "<Mensaje> Guardado de {}\n    {}".format(self.email, adjuntos_repr)
-            elif len(self.adjuntos) > 0:
-                return "<Mensaje> De {}\n    {}".format(self.email, adjuntos_repr)
+            return "<Mensaje> De {}\n    {}".format(self.email, adjuntos_repr)
         return "<Mensaje> De {} SIN ADJUNTOS".format(self.email)

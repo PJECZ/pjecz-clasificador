@@ -32,7 +32,7 @@ class Rechazo:
         else:
             raise Exception("ERROR: Falta buzones_rechazo_asunto en settings.ini")
 
-    def crear_contenido(self, causa, autoridad, distrito, archivos):
+    def crear_contenido(self, causas, autoridad, distrito, archivos):
         """Elaborar contenido"""
         dia, mes, ano = hoy_dia_mes_ano()
         if self.config.buzones_rechazo_contenido != "":
@@ -40,7 +40,7 @@ class Rechazo:
         else:
             raise Exception("ERROR: Falta buzones_rechazo_contenido en settings.ini")
         self.contenido = plantilla.render(
-            causa=causa,
+            causas=causas,
             autoridad=autoridad,
             distrito=distrito,
             archivos=archivos,

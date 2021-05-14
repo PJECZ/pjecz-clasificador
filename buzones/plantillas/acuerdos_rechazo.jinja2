@@ -7,7 +7,7 @@
 <p>{{ distrito }}</p>
 <p></p>
 
-<p>Lamentamos informarle que las siguentes listas de acuerdos <strong>fueron rechazadas:</strong></p>
+<p>Le informamos que los siguientes archivos <strong>fueron rechazados</strong> por el sistema que clasifica las listas de acuerdos:</p>
 
 <ul>
 {% for archivo in archivos %}
@@ -15,13 +15,16 @@
 {% endfor %}
 </ul>
 
-<p>Por esta causa:</p>
+<p>El receptor de documentos reporta de forma automática que:</p>
 <p></p>
 
-<p><strong>{{ causa }}</strong></p>
-<p></p>
+<ul>
+{% for causa in causas %}
+    <li>{{ causa }}</li>
+{% endfor %}
+</ul>
 
-<p>Por favor siga las instrucciones dadas o comuníquese con nosotros para brindarle soporte.</p>
+<p>Por favor siga al pie de la letra las instrucciones e intente enviar de nuevo o comuníquese con nosotros para apoyarle.</p>
 <p></p>
 
 <p>ATENTAMENTE</p>
