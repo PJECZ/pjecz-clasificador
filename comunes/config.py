@@ -93,7 +93,7 @@ class Config:
             if "remitentes_csv_columna_ruta" in settings[self.rama]:
                 self.remitentes_csv_columna_ruta = settings[self.rama]["remitentes_csv_columna_ruta"]
             if "dias_limite" in settings[self.rama]:
-                self.dias_limite = settings[self.rama]["dias_limite"]
+                self.dias_limite = int(settings[self.rama]["dias_limite"])
         except KeyError as error:
             raise KeyError(f"ERROR: Falta configuración en settings.ini para la rama {self.rama}") from error
 
