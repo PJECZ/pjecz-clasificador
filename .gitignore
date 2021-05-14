@@ -1,9 +1,11 @@
-__pycache__/
 *.csv
 *.egg-info/
 *.log
 *.py[cod]
 .directory
-settings.ini
-credentials.json
-token.pickle
+.DS_STORE
+__pycache__/
+/credentials.json
+/settings.ini
+/token.pickle
+/venv/

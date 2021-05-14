@@ -1,5 +1,8 @@
-import csv
+"""
+Clientes
+"""
 import os
+import csv
 import pickle
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -8,13 +11,14 @@ from tabulate import tabulate
 
 
 # Google Sheets API
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
+SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
 
 
-class Clientes(object):
+class Clientes:
     """ Clientes se alimenta desde un CSV o una hoja de Google Sheet, entrega un diccionario con clave e-mail """
 
     def __init__(self, config):
+        """ Inicializar """
         self.config = config
         self.clientes = {}
         self.alimentado = False
@@ -34,13 +38,13 @@ class Clientes(object):
                     except IndexError:
                         pass
                     else:
-                        if email != '' and distrito != '' and autoridad != '' and ruta != '':
+                        if email != "" and distrito != "" and autoridad != "" and ruta != "":
                             self.clientes[email] = {
-                                'distrito': distrito,
-                                'autoridad': autoridad,
-                                'ruta': ruta,
+                                "distrito": distrito,
+                                "autoridad": autoridad,
+                                "ruta": ruta,
                             }
-        return(self.clientes)
+        return self.clientes
 
     def cargar_desde_google_sheets_api(self):
         """ Cargar los clientes desde Google Sheets """
@@ -48,8 +52,8 @@ class Clientes(object):
         # https://developers.google.com/sheets/api/quickstart/python
         creds = None
         # En el archivo token.pickle se guardan el acceso y tokens
-        if os.path.exists('token.pickle'):
-            with open('token.pickle', 'rb') as token:
+        if os.path.exists("token.pickle"):
+            with open("token.pickle", "rb") as token:
                 creds = pickle.load(token)
         # Si no hay credenciales guardadas o si no son válidas
         if not creds or not creds.valid:
@@ -57,16 +61,16 @@ class Clientes(object):
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
             else:
-                flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
+                flow = InstalledAppFlow.from_client_secrets_file("credentials.json", SCOPES)
                 creds = flow.run_local_server(port=0)
             # Conservar las credenciales para la próxima ejecución
-            with open('token.pickle', 'wb') as token:
+            with open("token.pickle", "wb") as token:
                 pickle.dump(creds, token)
         # Llamar a la API de Google Sheets
-        service = build('sheets', 'v4', credentials=creds)
+        service = build("sheets", "v4", credentials=creds)
         sheet = service.spreadsheets()
         result = sheet.values().get(spreadsheetId=self.config.google_sheets_api_spreadsheet_id, range=self.config.google_sheets_api_rango).execute()
-        values = result.get('values', [])
+        values = result.get("values", [])
         # Entregar los clientes como un diccionario
         self.clientes = {}
         if values:
@@ -79,26 +83,26 @@ class Clientes(object):
                 except IndexError:
                     pass
                 else:
-                    if email != '' and distrito != '' and autoridad != '' and ruta != '':
+                    if email != "" and distrito != "" and autoridad != "" and ruta != "":
                         self.clientes[email] = {
-                            'distrito': distrito,
-                            'autoridad': autoridad,
-                            'ruta': ruta,
+                            "distrito": distrito,
+                            "autoridad": autoridad,
+                            "ruta": ruta,
                         }
-        return(self.clientes)
+        return self.clientes
 
     def cargar(self):
         """ Cargar los clientes """
         self.alimentado = True
-        if self.config.remitentes_csv_ruta != '':
+        if self.config.remitentes_csv_ruta != "":
             self.cargar_desde_archivo_csv()
-        elif self.config.google_sheets_api_spreadsheet_id != '':
+        elif self.config.google_sheets_api_spreadsheet_id != "":
             self.cargar_desde_google_sheets_api()
         else:
-            raise Exception('ERROR: No se pueden cargar los clientes porque la configuración está incompleta.')
+            raise Exception("ERROR: No se pueden cargar los clientes porque la configuración está incompleta.")
         if len(self.clientes) == 0:
-            raise Exception('AVISO: No se cargó ningún cliente.')
-        return(self.clientes)
+            raise Exception("AVISO: No se cargó ningún cliente.")
+        return self.clientes
 
     def filtrar_con_archivo_ruta(self, archivo_ruta):
         """ Filtrar los clientes donde ruta sea el inicio de archivo_ruta """
@@ -106,22 +110,23 @@ class Clientes(object):
             self.cargar()
         filtrados = {}
         for email, informacion in self.clientes.items():
-            if archivo_ruta.startswith(informacion['ruta']):
+            if archivo_ruta.startswith(informacion["ruta"]):
                 filtrados[email] = {
-                    'distrito': informacion['distrito'],
-                    'autoridad': informacion['autoridad'],
-                    'ruta': informacion['ruta'],
+                    "distrito": informacion["distrito"],
+                    "autoridad": informacion["autoridad"],
+                    "ruta": informacion["ruta"],
                 }
-        return(filtrados)
+        return filtrados
 
     def crear_tabla(self):
-        tabla = [['e-mail', 'Mover a']]
+        """ Crear tabla con Tabulate para mostrar en terminal """
+        tabla = [["e-mail", "Mover a"]]
         for email, informacion in self.clientes.items():
-            tabla.append([email, informacion['ruta']])
-        return(tabulate(tabla, headers='firstrow'))
+            tabla.append([email, informacion["ruta"]])
+        return tabulate(tabla, headers="firstrow")
 
     def __repr__(self):
+        """ Representación """
         if self.alimentado is True:
-            return('<Clientes> Hay {} clientes'.format(len(self.clientes)))
-        else:
-            return('<Clientes>')
+            return "<Clientes> Hay {} clientes".format(len(self.clientes))
+        return "<Clientes>"

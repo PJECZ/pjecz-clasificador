@@ -1,0 +1,32 @@
+<h1>PODER JUDICIAL<h1>
+<h3>DEL ESTADO DE COAHUILA DE ZARAGOZA</h3>
+<h2 style="color: red">RECHAZO DE RECEPCIÓN DE DOCUMENTOS</h2>
+<p></p>
+
+<p><b>{{ autoridad }}</b></p>
+<p>{{ distrito }}</p>
+<p></p>
+
+<p>Le informamos que los siguientes archivos <strong>fueron rechazados</strong> por el sistema que clasifica las listas de acuerdos:</p>
+
+<ul>
+{% for archivo in archivos %}
+    <li>{{ archivo }}</li>
+{% endfor %}
+</ul>
+
+<p>El receptor de documentos reporta de forma automática que:</p>
+<p></p>
+
+<ul>
+{% for causa in causas %}
+    <li>{{ causa }}</li>
+{% endfor %}
+</ul>
+
+<p>Por favor siga al pie de la letra las instrucciones e intente enviar de nuevo o comuníquese con nosotros para apoyarle.</p>
+<p></p>
+
+<p>ATENTAMENTE</p>
+<p>SALTILLO, COAHUILA DE ZARAGOZA, A {{ dia }} DE {{ mes }} DE {{ ano }}</p>
+<p>DIRECCIÓN DE INFORMÁTICA</p>

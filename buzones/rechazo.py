@@ -1,5 +1,5 @@
 """
-Acuse
+Buzones, Rechazo
 """
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -8,14 +8,14 @@ from jinja2 import Environment, FileSystemLoader
 from comunes.funciones import hoy_dia_mes_ano
 
 
-class Acuse(object):
-    """ Acuse de confirmación de que un documento está en el depósito """
+class Rechazo:
+    """Mensaje de rechazo de recepción de recepción de documentos"""
 
     def __init__(self, config):
-        """ Inicializar """
+        """Inicializar"""
         self.config = config
         self.plantillas_env = Environment(
-            loader=FileSystemLoader("depositos/plantillas"),
+            loader=FileSystemLoader("buzones/plantillas"),
             trim_blocks=True,
             lstrip_blocks=True,
         )
@@ -25,22 +25,22 @@ class Acuse(object):
         self.ya_enviado = False
 
     def crear_asunto(self):
-        """ Elaborar asunto """
-        if self.config.depositos_acuse_asunto != "":
-            self.asunto = self.config.depositos_acuse_asunto
+        """Elaborar asunto"""
+        if self.config.buzones_rechazo_asunto != "":
+            self.asunto = self.config.buzones_rechazo_asunto
             return self.asunto
         else:
-            raise Exception("ERROR: Falta depositos_acuse_asunto en settings.ini")
+            raise Exception("ERROR: Falta buzones_rechazo_asunto en settings.ini")
 
-    def crear_contenido(self, identificador, autoridad, distrito, archivos):
-        """ Elaborar contenido """
-        dia, mes, ano = hoy_dia_mes_ano(self.config.fecha)
-        if self.config.depositos_acuse_contenido != "":
-            plantilla = self.plantillas_env.get_template(self.config.depositos_acuse_contenido)
+    def crear_contenido(self, causas, autoridad, distrito, archivos):
+        """Elaborar contenido"""
+        dia, mes, ano = hoy_dia_mes_ano()
+        if self.config.buzones_rechazo_contenido != "":
+            plantilla = self.plantillas_env.get_template(self.config.buzones_rechazo_contenido)
         else:
-            raise Exception("ERROR: Falta depositos_acuse_contenido en settings.ini")
+            raise Exception("ERROR: Falta buzones_rechazo_contenido en settings.ini")
         self.contenido = plantilla.render(
-            identificador=identificador,
+            causas=causas,
             autoridad=autoridad,
             distrito=distrito,
             archivos=archivos,
@@ -51,7 +51,7 @@ class Acuse(object):
         return self.contenido
 
     def enviar(self, email):
-        """ Enviar mensaje vía correo electrónico """
+        """Enviar mensaje vía correo electrónico"""
         if self.ya_enviado is False:
             if self.asunto is None:
                 raise Exception("ERROR: No se ha elaborado el asunto del mensaje.")
@@ -82,7 +82,7 @@ class Acuse(object):
             self.ya_enviado = True
 
     def __repr__(self):
-        """ Representación """
+        """Representación"""
         if self.ya_enviado:
-            return "<Acuse> Enviado a {}".format(self.email)
-        return "<Acuse>"
+            return "<Rechazo> Enviado a {}".format(self.email)
+        return "<Rechazo>"
