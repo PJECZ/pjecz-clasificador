@@ -82,13 +82,14 @@ class Buzon:
             raise Exception("ERROR: No puede responder con acuses porque no ha leído los mensajes.")
         if self.ya_guardados is False:
             raise Exception("ERROR: No puede responder con acuses porque no ha guardado los adjuntos.")
-        if self.ya_respondidos_con_acuses is False:
+        if self.ya_respondidos_con_acuses is False and len(self.mensajes) > 0:
             contador = 0
             for mensaje in self.mensajes:
-                if mensaje.ya_respondido is False and mensaje.email in remitentes:
+                if mensaje.ya_enviados_acuses is False and mensaje.email in remitentes:
                     mensaje.enviar_acuse(remitentes[mensaje.email])
                     contador += 1
-            bitacora.info("[%s] Respondidos %s mensajes con acuses", self.config.rama, contador)
+            if contador > 0:
+                bitacora.info("[%s] Respondidos %s mensajes con acuses", self.config.rama, contador)
             self.ya_respondidos_con_acuses = True
 
     def responder_con_rechazos(self, remitentes):
@@ -97,13 +98,14 @@ class Buzon:
             raise Exception("ERROR: No puede responder con rechazos porque no ha leído los mensajes.")
         if self.ya_guardados is False:
             raise Exception("ERROR: No puede responder con rechazos porque no ha guardado los adjuntos.")
-        if self.ya_respondidos_con_rechazos is False:
+        if self.ya_respondidos_con_rechazos is False and len(self.mensajes_descartados) > 0:
             contador = 0
             for mensaje in self.mensajes_descartados:
-                if mensaje.ya_respondido is False and mensaje.email in remitentes:
+                if mensaje.ya_enviados_rechazos is False and mensaje.email in remitentes:
                     mensaje.enviar_rechazo(remitentes[mensaje.email])
                     contador += 1
-            bitacora.info("[%s] Respondidos %s mensajes con rechazos", self.config.rama, contador)
+            if contador > 0:
+                bitacora.info("[%s] Respondidos %s mensajes con rechazos", self.config.rama, contador)
             self.ya_respondidos_con_rechazos = True
 
     def __repr__(self):
