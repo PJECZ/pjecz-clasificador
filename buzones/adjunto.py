@@ -105,7 +105,6 @@ class Adjunto:
             # Mensaje de éxito
             self.ya_guardado = True
             bitacora.info("[%s] Guardado en %s", self.config.rama, self.ruta)
-            return True
 
     def __repr__(self):
         """Representación"""

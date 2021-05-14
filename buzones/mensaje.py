@@ -79,7 +79,6 @@ class Mensaje:
         self.acuse.enviar(self.email)
         bitacora.info("[%s] Acuse enviado a %s por %s", self.config.rama, self.email, ", ".join([adjunto.archivo for adjunto in self.adjuntos]))
         self.ya_enviados_acuses = True
-        return True
 
     def enviar_rechazo(self, destinatario):
         """Enviar rechazo vía correo electrónico"""
@@ -101,7 +100,6 @@ class Mensaje:
         self.rechazo.enviar(self.email)
         bitacora.info("[%s] Rechazo enviado a %s por %s", self.config.rama, self.email, ", ".join([adjunto.archivo for adjunto in self.adjuntos_rechazados]))
         self.ya_enviados_rechazos = True
-        return True
 
     def __repr__(self):
         """Representación"""
