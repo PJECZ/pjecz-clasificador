@@ -9,7 +9,7 @@ from comunes.funciones import hoy_dia_mes_ano
 
 
 class Acuse:
-    """Acuse de recepción de recepción de documentos"""
+    """Mensaje de acuse de recepción de recepción de documentos"""
 
     def __init__(self, config):
         """Inicializar"""

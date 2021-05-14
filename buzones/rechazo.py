@@ -9,7 +9,7 @@ from comunes.funciones import hoy_dia_mes_ano
 
 
 class Rechazo:
-    """Rechazo de recepción de recepción de documentos"""
+    """Mensaje de rechazo de recepción de recepción de documentos"""
 
     def __init__(self, config):
         """Inicializar"""
