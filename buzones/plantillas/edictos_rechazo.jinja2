@@ -1,5 +1,29 @@
 <h1>PODER JUDICIAL<h1>
 <h3>DEL ESTADO DE COAHUILA DE ZARAGOZA</h3>
-<h2>RECHAZO DE RECEPCIÓN DE DOCUMENTOS</h2>
+<h2 style="color: red">RECHAZO DE RECEPCIÓN DE DOCUMENTOS</h2>
 <p></p>
 
+<p><b>{{ autoridad }}</b></p>
+<p>{{ distrito }}</p>
+<p></p>
+
+<p>Lamentamos informarle que los siguentes edictos <strong>fueron rechazadas:</strong></p>
+
+<ul>
+{% for archivo in archivos %}
+    <li>{{ archivo }}</li>
+{% endfor %}
+</ul>
+
+<p>Por esta causa:</p>
+<p></p>
+
+<p><strong>{{ causa }}</strong></p>
+<p></p>
+
+<p>Por favor siga las instrucciones dadas o comuníquese con nosotros para brindarle soporte.</p>
+<p></p>
+
+<p>ATENTAMENTE</p>
+<p>SALTILLO, COAHUILA DE ZARAGOZA, A {{ dia }} DE {{ mes }} DE {{ ano }}</p>
+<p>DIRECCIÓN DE INFORMÁTICA</p>

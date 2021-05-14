@@ -9,10 +9,10 @@ from comunes.funciones import hoy_dia_mes_ano
 
 
 class Acuse:
-    """ Acuse de recepción de un mensaje """
+    """Acuse de recepción de recepción de documentos"""
 
     def __init__(self, config):
-        """ Inicializar """
+        """Inicializar"""
         self.config = config
         self.plantillas_env = Environment(
             loader=FileSystemLoader("buzones/plantillas"),
@@ -25,7 +25,7 @@ class Acuse:
         self.ya_enviado = False
 
     def crear_asunto(self):
-        """ Elaborar asunto """
+        """Elaborar asunto"""
         if self.config.buzones_acuse_asunto != "":
             self.asunto = self.config.buzones_acuse_asunto
             return self.asunto
@@ -33,7 +33,7 @@ class Acuse:
             raise Exception("ERROR: Falta buzones_acuse_asunto en settings.ini")
 
     def crear_contenido(self, identificador, autoridad, distrito, archivos):
-        """ Elaborar contenido """
+        """Elaborar contenido"""
         dia, mes, ano = hoy_dia_mes_ano()
         if self.config.buzones_acuse_contenido != "":
             plantilla = self.plantillas_env.get_template(self.config.buzones_acuse_contenido)
@@ -51,7 +51,7 @@ class Acuse:
         return self.contenido
 
     def enviar(self, email):
-        """ Enviar mensaje vía correo electrónico """
+        """Enviar mensaje vía correo electrónico"""
         if self.ya_enviado is False:
             if self.asunto is None:
                 raise Exception("ERROR: No se ha elaborado el asunto del mensaje.")
@@ -82,8 +82,7 @@ class Acuse:
             self.ya_enviado = True
 
     def __repr__(self):
-        """ Representación """
+        """Representación"""
         if self.ya_enviado:
             return "<Acuse> Enviado a {}".format(self.email)
-        else:
-            return "<Acuse>"
+        return "<Acuse>"

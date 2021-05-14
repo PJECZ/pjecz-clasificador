@@ -22,6 +22,7 @@ class Config:
         self.servidor_smtp = ""
         self.buzones_acuse_asunto = ""
         self.buzones_acuse_contenido = ""
+        self.buzones_rechazo_asunto = ""
         self.buzones_rechazo_contenido = ""
         self.deposito_ruta = ""
         self.depositos_acuse_asunto = ""
@@ -58,6 +59,10 @@ class Config:
                 self.buzones_acuse_asunto = settings[self.rama]["buzones_acuse_asunto"]
             if "buzones_acuse_contenido" in settings[self.rama]:
                 self.buzones_acuse_contenido = settings[self.rama]["buzones_acuse_contenido"]
+            if "buzones_rechazo_asunto" in settings[self.rama]:
+                self.buzones_rechazo_asunto = settings[self.rama]["buzones_rechazo_asunto"]
+            if "buzones_rechazo_contenido" in settings[self.rama]:
+                self.buzones_rechazo_contenido = settings[self.rama]["buzones_rechazo_contenido"]
             self.deposito_ruta = settings[self.rama]["deposito_ruta"]
             if "depositos_acuse_asunto" in settings[self.rama]:
                 self.depositos_acuse_asunto = settings[self.rama]["depositos_acuse_asunto"]
