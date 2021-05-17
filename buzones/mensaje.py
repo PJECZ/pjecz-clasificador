@@ -63,11 +63,10 @@ class Mensaje:
         """Enviar acuse vía correo electrónico"""
         if self.ya_guardado is False:
             raise Exception("ERROR: No puede enviar acuse porque no ha guardado los adjuntos.")
-        if self.hay_adjuntos_validos is False:
-            return False
         if self.ya_enviados_acuses:
             return False
-        if len(self.adjuntos) == 0:
+        self.ya_enviados_acuses = True
+        if self.hay_adjuntos_validos is False:
             return False
         self.acuse.crear_asunto()
         self.acuse.crear_contenido(
@@ -78,17 +77,15 @@ class Mensaje:
         )
         self.acuse.enviar(self.email)
         bitacora.info("[%s] Acuse enviado a %s por %s", self.config.rama, self.email, ", ".join([adjunto.archivo for adjunto in self.adjuntos]))
-        self.ya_enviados_acuses = True
 
     def enviar_rechazo(self, destinatario):
         """Enviar rechazo vía correo electrónico"""
         if self.ya_guardado is False:
             raise Exception("ERROR: No puede enviar rechazos porque no ha guardado los adjuntos.")
-        if self.hay_adjuntos_rechazados is False:
-            return False
         if self.ya_enviados_rechazos:
             return False
-        if len(self.adjuntos_rechazados) == 0:
+        self.ya_enviados_rechazos = True
+        if self.hay_adjuntos_rechazados is False:
             return False
         self.rechazo.crear_asunto()
         self.rechazo.crear_contenido(
@@ -99,7 +96,6 @@ class Mensaje:
         )
         self.rechazo.enviar(self.email)
         bitacora.info("[%s] Rechazo enviado a %s por %s", self.config.rama, self.email, ", ".join([adjunto.archivo for adjunto in self.adjuntos_rechazados]))
-        self.ya_enviados_rechazos = True
 
     def __repr__(self):
         """Representación"""
@@ -107,13 +103,13 @@ class Mensaje:
             if self.ya_enviados_acuses and self.hay_adjuntos_validos and self.ya_enviados_rechazos and self.hay_adjuntos_rechazados:
                 adjuntos_validos_repr = "\n    ".join([repr(adjunto) for adjunto in self.adjuntos])
                 adjuntos_rechazados_repr = "\n    ".join([repr(adjunto) for adjunto in self.adjuntos_rechazados])
-                return "<Mensaje> De {} guardado\n    {}\n    {}".format(self.email, adjuntos_validos_repr, adjuntos_rechazados_repr)
+                return "<Mensaje> De {} con acuses y rechazos\n    {}\n    {}".format(self.email, adjuntos_validos_repr, adjuntos_rechazados_repr)
             elif self.ya_enviados_acuses and self.hay_adjuntos_validos:
                 adjuntos_validos_repr = "\n    ".join([repr(adjunto) for adjunto in self.adjuntos])
-                return "<Mensaje> De {} guardado\n    {}".format(self.email, adjuntos_validos_repr)
+                return "<Mensaje> De {} con acuses\n    {}".format(self.email, adjuntos_validos_repr)
             elif self.ya_enviados_rechazos and self.hay_adjuntos_rechazados:
                 adjuntos_rechazados_repr = "\n    ".join([repr(adjunto) for adjunto in self.adjuntos_rechazados])
-                return "<Mensaje> De {} guardado\n    {}".format(self.email, adjuntos_rechazados_repr)
+                return "<Mensaje> De {} con rechazos\n    {}".format(self.email, adjuntos_rechazados_repr)
             else:
                 return "<Mensaje> De {} guardado".format(self.email)
         elif len(self.adjuntos) > 0:
