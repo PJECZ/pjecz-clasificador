@@ -74,7 +74,7 @@ class Adjunto:
             archivo_ruta = Path(self.archivo)
             if archivo_ruta.suffix.lower() != ".pdf":
                 bitacora.error("[%s] Se omite %s por no tener la extensión pdf")
-                self.rechazo_mensaje = "El archivo no tiene la extensión pdf."
+                self.rechazo_mensaje = "El(los) archivo(s) no tiene(n) la extensión pdf."
                 raise AdjuntoRechazo
             # Validar fecha
             nombre_sin_extension = unidecode(archivo_ruta.name[:-4])

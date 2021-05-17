@@ -112,10 +112,10 @@ class Buzon:
         """Representación"""
         if len(self.mensajes) > 0:
             mensajes_repr = "\n  ".join([repr(mensaje) for mensaje in self.mensajes])
-            if self.ya_respondidos_con_acuses:
-                return "<Buzon> Respondidos {}, descartados {}\n  {}".format(len(self.mensajes), len(self.mensajes_descartados), mensajes_repr)
+            if self.ya_respondidos_con_acuses or self.ya_respondidos_con_rechazos:
+                return "<Buzon> Respondidos acuses {}, rechazados {}\n  {}".format(len(self.mensajes), len(self.mensajes_descartados), mensajes_repr)
             elif self.ya_guardados:
-                return "<Buzon> Guardados {}, descartados {}\n  {}".format(len(self.mensajes), len(self.mensajes_descartados), mensajes_repr)
+                return "<Buzon> Guardados {}, rechazados {}\n  {}".format(len(self.mensajes), len(self.mensajes_descartados), mensajes_repr)
             elif self.ya_leidos:
                 return "<Buzon> Leídos {}\n  {}".format(len(self.mensajes), mensajes_repr)
             else:
