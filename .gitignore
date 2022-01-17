@@ -7,5 +7,5 @@
 __pycache__/
 /credentials.json
 /settings.ini
-/token.pickle
+/token.json
 /venv/
