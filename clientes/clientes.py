@@ -1,12 +1,13 @@
 """
 Clientes
 """
-import os
 import csv
-import pickle
-from googleapiclient.discovery import build
-from google_auth_oauthlib.flow import InstalledAppFlow
+import os
+
 from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
 from tabulate import tabulate
 
 
@@ -51,10 +52,9 @@ class Clientes:
         # Google Sheets API
         # https://developers.google.com/sheets/api/quickstart/python
         creds = None
-        # En el archivo token.pickle se guardan el acceso y tokens
-        if os.path.exists("token.pickle"):
-            with open("token.pickle", "rb") as token:
-                creds = pickle.load(token)
+        # En el archivo token.json se guardan el acceso y tokens
+        if os.path.exists("token.json"):
+            creds = Credentials.from_authorized_user_file("token.json", SCOPES)
         # Si no hay credenciales guardadas o si no son válidas
         if not creds or not creds.valid:
             # Si expiraron
@@ -64,8 +64,8 @@ class Clientes:
                 flow = InstalledAppFlow.from_client_secrets_file("credentials.json", SCOPES)
                 creds = flow.run_local_server(port=0)
             # Conservar las credenciales para la próxima ejecución
-            with open("token.pickle", "wb") as token:
-                pickle.dump(creds, token)
+            with open("token.json", "wb") as token:
+                token.write(creds.to_json())
         # Llamar a la API de Google Sheets
         service = build("sheets", "v4", credentials=creds)
         sheet = service.spreadsheets()
