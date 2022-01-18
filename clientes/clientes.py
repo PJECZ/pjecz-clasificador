@@ -8,8 +8,8 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 from tabulate import tabulate
-
 
 # Google Sheets API
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
@@ -64,13 +64,17 @@ class Clientes:
                 flow = InstalledAppFlow.from_client_secrets_file("credentials.json", SCOPES)
                 creds = flow.run_local_server(port=0)
             # Conservar las credenciales para la próxima ejecución
-            with open("token.json", "wb") as token:
+            with open("token.json", "w") as token:
                 token.write(creds.to_json())
-        # Llamar a la API de Google Sheets
-        service = build("sheets", "v4", credentials=creds)
-        sheet = service.spreadsheets()
-        result = sheet.values().get(spreadsheetId=self.config.google_sheets_api_spreadsheet_id, range=self.config.google_sheets_api_rango).execute()
-        values = result.get("values", [])
+        values = None
+        try:
+            # Llamar a la API de Google Sheets
+            service = build("sheets", "v4", credentials=creds)
+            sheet = service.spreadsheets()
+            result = sheet.values().get(spreadsheetId=self.config.google_sheets_api_spreadsheet_id, range=self.config.google_sheets_api_rango).execute()
+            values = result.get("values", [])
+        except HttpError as error:
+            raise error
         # Entregar los clientes como un diccionario
         self.clientes = {}
         if values:
