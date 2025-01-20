@@ -2,6 +2,7 @@
 *.egg-info/
 *.log
 *.py[cod]
+.bashrc
 .directory
 .DS_STORE
 __pycache__/
