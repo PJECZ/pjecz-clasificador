@@ -64,7 +64,7 @@ class Buzon:
             for mensaje in self.mensajes:
                 if str(mensaje.email).lower() in remitentes:
                     bitacora.info("[%s] Mensaje reconocido de %s", self.config.rama, mensaje.email)
-                    remitente = remitentes[mensaje.email]
+                    remitente = remitentes[str(mensaje.email).lower()]
                     mensaje.guardar_adjuntos(remitente["ruta"])
                     if mensaje.hay_adjuntos_validos:
                         mensajes_clasificados.append(mensaje)
@@ -86,7 +86,7 @@ class Buzon:
             contador = 0
             for mensaje in self.mensajes:
                 if mensaje.ya_enviados_acuses is False and str(mensaje.email).lower() in remitentes:
-                    mensaje.enviar_acuse(remitentes[mensaje.email])
+                    mensaje.enviar_acuse(remitentes[str(mensaje.email).lower()])
                     contador += 1
             if contador > 0:
                 bitacora.info("[%s] Respondidos %s mensajes con acuses", self.config.rama, contador)
@@ -102,7 +102,7 @@ class Buzon:
             contador = 0
             for mensaje in self.mensajes_descartados:
                 if mensaje.ya_enviados_rechazos is False and str(mensaje.email).lower() in remitentes:
-                    mensaje.enviar_rechazo(remitentes[mensaje.email])
+                    mensaje.enviar_rechazo(remitentes[str(mensaje.email).lower()])
                     contador += 1
             if contador > 0:
                 bitacora.info("[%s] Respondidos %s mensajes con rechazos", self.config.rama, contador)
