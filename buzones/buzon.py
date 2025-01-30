@@ -62,7 +62,7 @@ class Buzon:
         if self.ya_guardados is False:
             mensajes_clasificados = []
             for mensaje in self.mensajes:
-                if mensaje.email.lower() in remitentes:
+                if str(mensaje.email).lower() in remitentes:
                     bitacora.info("[%s] Mensaje reconocido de %s", self.config.rama, mensaje.email)
                     remitente = remitentes[mensaje.email]
                     mensaje.guardar_adjuntos(remitente["ruta"])
