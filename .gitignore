@@ -10,3 +10,4 @@ __pycache__/
 /settings.ini
 /token.json
 /venv/
+/.venv/
