@@ -1,6 +1,7 @@
 """
 Buzones, Adjunto
 """
+
 from datetime import datetime, date, timedelta
 import os
 import logging
@@ -8,7 +9,7 @@ from pathlib import Path
 import re
 from unidecode import unidecode
 
-from comunes.funciones import mes_en_palabra, hoy_dia_mes_ano
+from comunes.funciones import hoy_dia_mes_ano, mes_en_palabra, nombre_seguro_archivo
 
 bitacora = logging.getLogger(__name__)
 bitacora.setLevel(logging.INFO)
@@ -94,7 +95,7 @@ class Adjunto:
                 self.rechazo_mensaje = "La fecha está fuera de rango. No se permiten fechas en el futuro ni muy antiguas."
                 raise AdjuntoRechazo
             # Escribir el archivo
-            self.ruta_completa = os.path.join(directorio_completo, self.archivo)
+            self.ruta_completa = os.path.join(directorio_completo, nombre_seguro_archivo(self.archivo))
             try:
                 with open(self.ruta_completa, "wb") as puntero:
                     puntero.write(self.contenido_binario)

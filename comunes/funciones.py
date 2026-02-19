@@ -1,22 +1,25 @@
 """
 Funciones
 """
-from datetime import date, datetime
 
+from datetime import date, datetime
+from pathlib import Path
+import re
+from unidecode import unidecode
 
 MESES = {
-    1: "Enero",
-    2: "Febrero",
-    3: "Marzo",
-    4: "Abril",
-    5: "Mayo",
-    6: "Junio",
-    7: "Julio",
-    8: "Agosto",
-    9: "Septiembre",
-    10: "Octubre",
-    11: "Noviembre",
-    12: "Diciembre",
+    1: "enero",
+    2: "febrero",
+    3: "marzo",
+    4: "abril",
+    5: "mayo",
+    6: "junio",
+    7: "julio",
+    8: "agosto",
+    9: "septiembre",
+    10: "octubre",
+    11: "noviembre",
+    12: "diciembre",
 }
 
 
@@ -38,6 +41,27 @@ def hoy_dia_mes_ano(fecha=None):
     mes = mes_en_palabra(fecha_date.month)
     ano = str(fecha_date.year)
     return (dia, mes, ano)
+
+
+def nombre_seguro_archivo(nombre_archivo):
+    """Entrega un nombre de archivo seguro, solo con letras, dígitos y guiones"""
+
+    # Separar el nombre del archivo de su extensión
+    archivo_ruta = Path(nombre_archivo)
+    nombre_sin_extension = archivo_ruta.stem
+    extension = archivo_ruta.suffix.lower()
+
+    # Normalizar con unidecode
+    nombre_sin_extension = unidecode(nombre_sin_extension).strip()
+
+    # Reemplazar caracteres no permitidos por guiones
+    nombre_sin_extension = re.sub(r'[^a-zA-Z0-9-]', '-', nombre_sin_extension)
+
+    # Eliminar dos o más guiones consecutivos
+    nombre_sin_extension = re.sub(r'-{2,}', '-', nombre_sin_extension).strip('-')
+
+    # Entregar el nombre seguro con la extensión original
+    return f"{nombre_sin_extension}{extension}"
 
 
 def validar_email(email=""):
