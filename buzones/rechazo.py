@@ -67,8 +67,8 @@ class Rechazo:
             mensaje["To"] = email
             mensaje.attach(MIMEText(self.contenido, "html"))
             # Enviar mensaje
+            server = smtplib.SMTP(self.config.servidor_smtp, 587)
             try:
-                server = smtplib.SMTP(self.config.servidor_smtp, "587")
                 server.ehlo()
                 server.starttls()
                 server.ehlo()
